@@ -179,7 +179,6 @@ class GarnetNetwork : public Network
     statistics::Formula m_avg_packet_network_latency;
     statistics::Formula m_avg_packet_queueing_latency;
     statistics::Formula m_avg_packet_latency;
-    statistics::Scalar m_reception_rate;
 
     statistics::Vector m_flits_received;
     statistics::Vector m_flits_injected;
@@ -200,6 +199,9 @@ class GarnetNetwork : public Network
 
     statistics::Scalar  m_total_hops;
     statistics::Formula m_avg_hops;
+
+    statistics::Scalar m_reception_rate_divisor;
+    statistics::Formula m_reception_rate;
 
     std::vector<std::vector<statistics::Scalar *>> m_data_traffic_distribution;
     std::vector<std::vector<statistics::Scalar *>> m_ctrl_traffic_distribution;
