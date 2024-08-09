@@ -179,6 +179,7 @@ class GarnetNetwork : public Network
     statistics::Formula m_avg_packet_network_latency;
     statistics::Formula m_avg_packet_queueing_latency;
     statistics::Formula m_avg_packet_latency;
+    statistics::Scalar m_reception_rate;
 
     statistics::Vector m_flits_received;
     statistics::Vector m_flits_injected;

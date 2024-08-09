@@ -85,7 +85,9 @@ e.g.:
     The packet class...
 """
     )
-    sys.exit(1)
+
+
+#    sys.exit(1)
 
 
 def _validateTags(commit_header):

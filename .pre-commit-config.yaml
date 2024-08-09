@@ -62,10 +62,6 @@ repos:
   - id: mixed-line-ending
     args: [--fix=lf]
   - id: check-case-conflict
-- repo: https://github.com/psf/black
-  rev: 22.6.0
-  hooks:
-    - id: black
 - repo: local
   hooks:
   - id: gem5-style-checker
