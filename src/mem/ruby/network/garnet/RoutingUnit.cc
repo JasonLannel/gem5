@@ -260,6 +260,37 @@ RoutingUnit::outportComputeXY(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
+// This custom routing is used for ring.
+// Find shortest path; Go west for tie-break.
+int
+RoutingUnit::outportComputeRing(RouteInfo route,
+                                int inport,
+                                PortDirection inport_dirn)
+{
+    PortDirection outport_dirn = "Unknown";
+    int num_router = m_router->get_net_ptr()->getNumRouters();
+
+    int my_id = m_router->get_id();
+    int dest_id = route.dest_router;
+
+    int east_hops = dest_id - my_id;
+    assert(east_hops != 0);
+    if (east_hops < 0) {
+        east_hops += num_router;
+    }
+    int west_hops = num_router - east_hops;
+
+    if (east_hops < west_hops) {
+        assert(inport_dirn == "Local" || inport_dirn == "West");
+        outport_dirn = "East";
+    } else {
+        assert(inport_dirn == "Local" || inport_dirn == "East");
+        outport_dirn = "West";
+    }
+
+    return m_outports_dirn2idx[outport_dirn];
+}
+
 // Template for implementing custom routing algorithm
 // using port directions. (Example adaptive)
 int
@@ -267,7 +298,7 @@ RoutingUnit::outportComputeCustom(RouteInfo route,
                                  int inport,
                                  PortDirection inport_dirn)
 {
-    panic("%s placeholder executed", __FUNCTION__);
+    return outportComputeRing(route, inport, inport_dirn);
 }
 
 } // namespace garnet
