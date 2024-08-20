@@ -118,6 +118,12 @@ def define_options(parser):
         help="""SimpleNetwork links uses a separate physical
             channel for each virtual network""",
     )
+    parser.add_argument(
+        "--wormhole",
+        action="store_true",
+        default=False,
+        help="Use Default Wormhole Flow Control",
+    )
 
 
 def create_network(options, ruby):
@@ -169,6 +175,10 @@ def init_network(options, network, InterfaceClass):
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
+        if options.wormhole:
+            network.vcs_per_vnet = 1
+            network.buffers_per_ctrl_vc = 16
+            network.enable_wormhole = True
 
         # Create Bridges and connect them to the corresponding links
         for intLink in network.int_links:
