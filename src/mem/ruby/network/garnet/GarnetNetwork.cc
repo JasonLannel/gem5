@@ -564,11 +564,15 @@ GarnetNetwork::regStats()
         .unit(statistics::units::Count::get());    //Count
     m_average_link_utilization
         .name(name() + ".avg_link_utilization")
-        .unit(statistics::units::Ratio::get());    //Count/Cycle
+        .unit(statistics::units::Rate<
+           statistics::units::Count,
+           statistics::units::Cycle>::get());    //Count/Cycle
     m_average_vc_load
         .init(m_virtual_networks * m_max_vcs_per_vnet)
         .name(name() + ".avg_vc_load")
-        .unit(statistics::units::Ratio::get())    //Count/Cycle
+        .unit(statistics::units::Rate<
+           statistics::units::Count,
+           statistics::units::Cycle>::get())    //Count/Cycle
         .flags(statistics::pdf | statistics::total | statistics::nozero |
             statistics::oneline)
         ;
@@ -598,9 +602,10 @@ GarnetNetwork::regStats()
 
     m_reception_rate
         .name(name() + ".reception_rate")
-        .unit(statistics::units::Ratio::get());    //Count/Count/Cycle
-    m_reception_rate = sum(m_packets_received) / m_reception_rate_divisor;
-    // We will declare the formula later.
+        .unit(statistics::units::Rate<
+           statistics::units::Ratio,
+           statistics::units::Cycle>::get());    //Count/Count/Cycle
+    m_reception_rate = sum(m_packets_received) / m_num_cpus / m_sys_cycles;
 }
 
 void
@@ -634,7 +639,8 @@ GarnetNetwork::collateStats()
         m_routers[i]->collateStats();
     }
 
-    m_reception_rate_divisor = time_delta * getNumRouters();
+    m_sys_cycles = divCeil(time_delta, 2);
+    m_num_cpus = getNumRouters();
 }
 
 void

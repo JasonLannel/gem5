@@ -200,7 +200,8 @@ class GarnetNetwork : public Network
     statistics::Scalar  m_total_hops;
     statistics::Formula m_avg_hops;
 
-    statistics::Scalar m_reception_rate_divisor;
+    statistics::Scalar m_num_cpus;
+    statistics::Scalar m_sys_cycles;
     statistics::Formula m_reception_rate;
 
     std::vector<std::vector<statistics::Scalar *>> m_data_traffic_distribution;
