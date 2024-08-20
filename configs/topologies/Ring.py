@@ -1,8 +1,3 @@
-# CLAIM
-# This python file is a custom file for 1D-torus (ring) topology,
-# created and maintained by JasonLannel.
-# It's highly recommended to refer to Mesh_XY.py.
-
 from m5.params import *
 from m5.objects import *
 
@@ -91,9 +86,13 @@ class Ring(SimpleTopology):
         # Link routers.
         int_links = []
 
-        # Clockwise (East -> West)
-        for east_idx in range(num_routers):
+        for i in range(num_routers):
+            east_idx = i
             west_idx = (east_idx + 1) % num_routers
+            link_weight = 1
+            if i == num_routers-1:
+                link_weight = num_routers
+            # Clockwise (East -> West)
             int_links.append(
                 IntLink(
                     link_id=link_count,
@@ -102,13 +101,17 @@ class Ring(SimpleTopology):
                     src_outport="East",
                     dst_inport="West",
                     latency=link_latency,
-                    weight=1,
+                    weight=link_weight,
                 )
             )
             link_count += 1
 
-        for east_idx in range(num_routers):
+        for i in range(num_routers):
+            east_idx = i
             west_idx = (east_idx + 1) % num_routers
+            link_weight = 1
+            if i == num_routers-1:
+                link_weight = num_routers
             # Anti-clockwise (West -> East)
             int_links.append(
                 IntLink(
@@ -118,7 +121,7 @@ class Ring(SimpleTopology):
                     src_outport="West",
                     dst_inport="East",
                     latency=link_latency,
-                    weight=1,
+                    weight=link_weight,
                 )
             )
             link_count += 1
