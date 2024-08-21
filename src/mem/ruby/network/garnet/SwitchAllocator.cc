@@ -224,15 +224,42 @@ SwitchAllocator::arbitrate_outports()
                 if ((t_flit->get_type() == TAIL_) ||
                     t_flit->get_type() == HEAD_TAIL_) {
 
-                    // This Input VC should now be empty
-                    assert(!(input_unit->isReady(invc, curTick())));
+                    if (!m_router->enable_wormhole()) {
+                        // This Input VC should now be empty
+                        assert(!(input_unit->isReady(invc, curTick())));
 
-                    // Free this VC
-                    input_unit->set_vc_idle(invc, curTick());
+                        // Free this VC
+                        input_unit->set_vc_idle(invc, curTick());
 
-                    // Send a credit back
-                    // along with the information that this VC is now idle
-                    input_unit->increment_credit(invc, true, curTick());
+                        // Send a credit back
+                        // along with the information that
+                        // this VC is now idle
+                        input_unit->increment_credit(invc, true, curTick());
+                    } else {
+                        assert(t_flit->get_type() == HEAD_TAIL_);
+                        flit *t_nxt_flit = input_unit->peekTopFlit(invc);
+                        // Input VC can be not empty
+                        if (t_nxt_flit) {
+                            // Clear then Re-activate
+                            input_unit->set_vc_idle(invc, curTick());
+                            input_unit->set_vc_active(invc, curTick());
+                            // Set outport with info buffered in flit
+                            // Grant Outport
+                            input_unit->grant_outport(
+                                invc, t_nxt_flit->get_outport());
+                            // Send a credit back
+                            // Not indicate that the VC is idle
+                            input_unit->increment_credit(
+                                invc, false, curTick());
+                        } else {
+                            // Free this VC
+                            input_unit->set_vc_idle(invc, curTick());
+                            // Send a credit back
+                            // VC is now idle
+                            input_unit->increment_credit(
+                                invc, true, curTick());
+                        }
+                    }
                 } else {
                     // Send a credit back
                     // but do not indicate that the VC is idle
@@ -304,6 +331,12 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
             // each VC has at least one buffer,
             // so no need for additional credit check
             has_credit = true;
+        } else if ((m_router->enable_wormhole()) &&
+            (output_unit->has_wormhole(vnet))){
+            // for wormhole
+            // we only need credit
+            has_outvc = true;
+            has_credit = true;
         }
     } else {
         has_credit = output_unit->has_credit(outvc);
@@ -344,6 +377,12 @@ SwitchAllocator::vc_allocate(int outport, int inport, int invc)
     // Select a free VC from the output port
     int outvc =
         m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc));
+
+    if ((outvc == -1) && (m_router->enable_wormhole())) {
+        outvc = m_router
+            ->getOutputUnit(outport)
+            ->select_wormhole(get_vnet(invc));
+    }
 
     // has to get a valid VC since it checked before performing SA
     assert(outvc != -1);

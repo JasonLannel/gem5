@@ -69,6 +69,9 @@ class OutputUnit : public Consumer
     bool has_credit(int out_vc);
     bool has_free_vc(int vnet);
     int select_free_vc(int vnet);
+    // Wormhole
+    bool has_wormhole(int vnet);
+    int select_wormhole(int vnet);
 
     inline PortDirection get_direction() { return m_direction; }
 

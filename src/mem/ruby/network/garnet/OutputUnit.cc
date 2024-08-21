@@ -121,6 +121,38 @@ OutputUnit::select_free_vc(int vnet)
     return -1;
 }
 
+// Check if the output port has credit for wormhole.
+bool
+OutputUnit::has_wormhole(int vnet)
+{
+    int vc_base = vnet*m_vc_per_vnet;
+    for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
+        if (outVcState[vc].isInState(ACTIVE_, curTick())) {
+            if (has_credit(vc)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+// Wormhole to winner of Switch Allocation
+int
+OutputUnit::select_wormhole(int vnet)
+{
+    int vc_base = vnet*m_vc_per_vnet;
+    for (int vc = vc_base; vc < vc_base + m_vc_per_vnet; vc++) {
+        if (outVcState[vc].isInState(ACTIVE_, curTick())) {
+            if (has_credit(vc)) {
+                return vc;
+            }
+        }
+    }
+
+    return -1;
+}
+
 /*
  * The wakeup function of the OutputUnit reads the credit signal from the
  * downstream router for the output VC (i.e., input VC at downstream router).

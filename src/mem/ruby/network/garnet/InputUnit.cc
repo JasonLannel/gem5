@@ -90,8 +90,11 @@ InputUnit::wakeup()
         if ((t_flit->get_type() == HEAD_) ||
             (t_flit->get_type() == HEAD_TAIL_)) {
 
-            assert(virtualChannels[vc].get_state() == IDLE_);
-            set_vc_active(vc, curTick());
+            if (virtualChannels[vc].get_state() == IDLE_) {
+                set_vc_active(vc, curTick());
+            } else {
+                assert(m_router->enable_wormhole());
+            }
 
             // Route computation for this vc
             int outport = m_router->route_compute(t_flit->get_route(),
@@ -100,7 +103,13 @@ InputUnit::wakeup()
             // Update output port in VC
             // All flits in this packet will use this output port
             // The output port field in the flit is updated after it wins SA
-            grant_outport(vc, outport);
+            // In wormhole, if not empty, we do not update immediately
+            // Buffer the outport, and get it later
+            if ((!m_router->enable_wormhole()) || (get_outport(vc) == -1)) {
+                grant_outport(vc, outport);
+            } else {
+                t_flit->set_outport(outport);
+            }
 
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);
