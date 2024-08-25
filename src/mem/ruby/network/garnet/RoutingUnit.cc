@@ -196,8 +196,11 @@ RoutingUnit::outportCompute(RouteInfo route,
         case CUSTOM_: outport =
             outportComputeCustom(route, inport, inport_dirn); break;
 		case DETERMINISTIC_:
+		    outportComputeDeterministic(route, inport, invc, inport_dirn); break;
         case STADIC_ADAPTIVE_:
+            outportComputeStaticAdaptive(route, inport, invc, inport_dirn); break;
         case DYNAMIC_ADAPTIVE_:
+            outportComputeDynamicAdaptive(route, inport, invc, inport_dirn); break;
         default: outport =
             lookupRoutingTable(route.vnet, route.net_dest); break;
     }
