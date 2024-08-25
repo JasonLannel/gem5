@@ -166,7 +166,9 @@ RoutingUnit::addOutDirection(PortDirection outport_dirn, int outport_idx)
 // table is provided here.
 
 int
-RoutingUnit::outportCompute(RouteInfo route, int inport,
+RoutingUnit::outportCompute(RouteInfo route,
+							int inport,
+							int invnet_vc,
                             PortDirection inport_dirn)
 {
     int outport = -1;
@@ -193,6 +195,9 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
         // any custom algorithm
         case CUSTOM_: outport =
             outportComputeCustom(route, inport, inport_dirn); break;
+		case DETERMINISTIC_:
+        case STADIC_ADAPTIVE_:
+        case DYNAMIC_ADAPTIVE_:
         default: outport =
             lookupRoutingTable(route.vnet, route.net_dest); break;
     }
@@ -200,7 +205,6 @@ RoutingUnit::outportCompute(RouteInfo route, int inport,
     assert(outport != -1);
     return outport;
 }
-
 // XY routing implemented using port directions
 // Only for reference purpose in a Mesh
 // By default Garnet uses the routing table
