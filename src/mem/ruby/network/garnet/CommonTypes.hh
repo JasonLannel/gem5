@@ -58,7 +58,7 @@ struct RouteInfo
 {
     RouteInfo()
         : vnet(0), src_ni(0), src_router(0), dest_ni(0), dest_router(0),
-          hops_traversed(0)
+          hops_traversed(0), dr(0)
     {}
 
     // destination format for table-based routing
@@ -71,6 +71,7 @@ struct RouteInfo
     int dest_ni;
     int dest_router;
     int hops_traversed;
+    int dr;
 };
 
 #define INFINITE_ 10000

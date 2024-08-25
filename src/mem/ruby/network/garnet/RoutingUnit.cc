@@ -168,7 +168,7 @@ RoutingUnit::addOutDirection(PortDirection outport_dirn, int outport_idx)
 int
 RoutingUnit::outportCompute(RouteInfo route,
 							int inport,
-							int invnet_vc,
+							int invc,
                             PortDirection inport_dirn)
 {
     int outport = -1;
@@ -273,6 +273,52 @@ RoutingUnit::outportComputeCustom(RouteInfo route,
 {
     panic("%s placeholder executed", __FUNCTION__);
 }
+
+int RoutingUnit::outportComputeDeterministic(RouteInfo route,
+                                             int inport,
+                                             int invc,
+                                             PortDirection inport_dirn)
+{
+    panic("%s placeholder executed", __FUNCTION__);
+    // JIZHOU: You need to implement this.
+}
+
+int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
+                                              int inport,
+                                              int invc,
+                                              PortDirection inport_dirn)
+{
+    panic("%s placeholder executed", __FUNCTION__);
+    // Comes from Local => treat as in DR = 0 channel.
+    // Comes from IntLink =>
+    // 0. Check class now: Deterministic (DR=lim) can only choose deter.
+    // 1. Find all unoccupied adaptive channels closest to dest.
+    //    If some, pick, DR++ if necessary.
+    // 2. Find those adaptive channels permitted to select.
+    //    If some, pick, and wait, DR++ if necessary.
+    // 3. Pick Deterministic.
+
+}
+
+int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
+                                               int inport,
+                                               int invc,
+                                               PortDirection inport_dirn)
+{
+    panic("%s placeholder executed", __FUNCTION__);
+    // Comes from Local => treat as in adaptive channel.
+    // Comes from IntLink =>
+    // 0. Check class now: Deterministic can only choose deter.
+    // 1. Find all unoccupied adaptive channels closest to dest.
+    //    If Throttling: DR >= 0/1;
+    //    If some, pick, DR++ if necessary.
+    // 2. Find those adaptive channels permitted to select.
+    //    In dynamic, permit (can wait) only if my_DR < your_DR.
+    //    If Throttling: DR >= 0/1;
+    //    If some, pick, and wait, DR++ if necessary.
+    // 3. Pick Deterministic.
+}
+
 
 } // namespace garnet
 } // namespace ruby

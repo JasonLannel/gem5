@@ -55,7 +55,7 @@ class RoutingUnit
     RoutingUnit(Router *router);
     int outportCompute(RouteInfo route,
                       int inport,
-					  int invnet_vc,
+					  int invc,
                       PortDirection inport_dirn);
 
     // Topology-agnostic Routing Table based routing (default)
@@ -78,6 +78,11 @@ class RoutingUnit
     int outportComputeCustom(RouteInfo route,
                              int inport,
                              PortDirection inport_dirn);
+
+	int outportComputeDeterministic(RouteInfo route,
+									int inport,
+									int invc,
+									PortDirection inport_dirn);
 
     // Static Adaptive Routing Algorithm using Port Directions & # VC
     int outportComputeStaticAdaptive(RouteInfo route,

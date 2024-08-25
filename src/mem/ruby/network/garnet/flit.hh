@@ -80,6 +80,7 @@ class flit
     void set_enqueue_time(Tick time) { m_enqueue_time = time; }
 
     void increment_hops() { m_route.hops_traversed++; }
+    void increment_dr() { m_route.dr++; }
     virtual void print(std::ostream& out) const;
 
     bool

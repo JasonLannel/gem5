@@ -161,7 +161,7 @@ Router::getInportDirection(int inport)
 int
 Router::route_compute(RouteInfo route, int inport, int invc, PortDirection inport_dirn)
 {
-    return routingUnit.outportCompute(route, inport, invc % m_vc_per_vnet, inport_dirn);
+    return routingUnit.outportCompute(route, inport, invc, inport_dirn);
 }
 
 void
