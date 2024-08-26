@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function testRun {
-  for ((i = 50; i <= 50; i++)); do
+  for ((i = 49; i <= 50; i++)); do
     injection_rate="0.${i}"
     if [ $i -lt 10 ]; then
       injection_rate="0.0${i}"
@@ -32,7 +32,7 @@ function testcase {
      result_filename="simple_${synthetic_choices[idx]}.txt"
      rm "${result_filename}"
      touch "${result_filename}"
-     testRun "${result_filename}" "--enable-bidirectional"
+     testRun "${result_filename}" "--routing-algorithm=2"
 
   done
 }

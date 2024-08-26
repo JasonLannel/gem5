@@ -323,6 +323,10 @@ int RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
         int my_id = m_router->get_id();
         int dest_id = route.dest_router;
 
+        char v[6]; 
+        int d;
+        assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
+
         int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
         int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
 
