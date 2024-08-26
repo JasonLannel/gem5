@@ -87,6 +87,12 @@ class InputUnit : public Consumer
         virtualChannels[vc].set_outvc(outvc);
     }
 
+    inline void
+    grant_outvc_class(int vc, bool outvc_class)
+    {
+        virtualChannels[vc].set_outvc_class(outvc);
+    }
+
     inline int
     get_outport(int invc)
     {
@@ -97,6 +103,12 @@ class InputUnit : public Consumer
     get_outvc(int invc)
     {
         return virtualChannels[invc].get_outvc();
+    }
+
+    inline int
+    get_outvc_class(int invc)
+    {
+        return virtualChannels[invc].get_outvc_class();
     }
 
     inline Tick

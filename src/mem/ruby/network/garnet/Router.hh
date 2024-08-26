@@ -117,6 +117,7 @@ class Router : public BasicRouter, public Consumer
     PortDirection getInportDirection(int inport);
 
     int route_compute(RouteInfo route, int inport, int invc, PortDirection direction);
+    bool vc_class_compute(RouteInfo route, PortDirection direction);
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 

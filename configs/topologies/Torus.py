@@ -96,8 +96,8 @@ class Torus(SimpleTopology):
                         link_id=link_count,
                         src_node=routers[router_id],
                         dst_node=routers[dst_id],
-                        src_outport="upper" + str(dim),
-                        dst_inport="lower" + str(dim),
+                        src_outport="lower" + str(dim),
+                        dst_inport="upper" + str(dim),
                         latency=link_latency,
                         weight=1,
                     )
@@ -109,8 +109,8 @@ class Torus(SimpleTopology):
                             link_id=link_count,
                             src_node=routers[dst_id],
                             dst_node=routers[router_id],
-                            src_outport="lower" + str(dim),
-                            dst_inport="upper" + str(dim),
+                            src_outport="upper" + str(dim),
+                            dst_inport="lower" + str(dim),
                             latency=link_latency,
                             weight=1,
                         )

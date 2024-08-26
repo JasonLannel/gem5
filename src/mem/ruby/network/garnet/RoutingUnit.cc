@@ -264,13 +264,69 @@ RoutingUnit::outportComputeXY(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
+// Virtual channel class : 
+// Lower channel : 0 ~ vc_per_vnet / 2 - 1
+// Upper channel : otherwise
+// Currently do not support bidirection 
 int RoutingUnit::outportComputeDeterministic(RouteInfo route,
                                              int inport,
                                              int invc,
                                              PortDirection inport_dirn)
 {
-    panic("%s placeholder executed", __FUNCTION__);
-    // JIZHOU: You need to implement this.
+    auto vc_per_vnet = m_router->get_vc_per_vnet();
+    assert(vc_per_vnet >= 2);
+
+    int num_ary = m_router->get_net_ptr()->getNumAry();
+    int num_dim = m_router->get_net_ptr()->getNumDim();
+
+    int my_id = m_router->get_id();
+    
+    int dest_id = route.dest_router;
+
+    assert (my_id == dest_id);
+
+    if (inport_dirn == "Local") {
+        int i = num_dim;
+        for (; (((my_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary) == ((dest_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary)); --i);
+
+        return m_outports_dirn2idx["upper" + std::to_string(i)];
+    }
+
+    // 0 for lower channel, 1 for upper channel
+    bool vc_class = (invc % vc_per_vnet) < static_cast<int>(vc_per_vnet / 2);
+    // Notation c_{dvx} -> n_j
+    char v[6]; 
+    int d;
+    assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
+
+    int outport_dim;
+    int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+    int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+
+    if (my_digit != dest_digit) 
+        outport_dim = d; 
+    else {
+        int i = d - 1;
+        for (; (((my_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary) == ((dest_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary)); --i);
+        outport_dim = i;
+    }
+
+    return m_outports_dirn2idx["lower" + std::to_string(outport_dim)];
+}
+
+bool RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
+    int num_ary = m_router->get_net_ptr()->getNumAry();
+    
+    int my_id = m_router->get_id();
+    int dest_id = route.dest_router;
+
+    int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+    int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+
+    bool outport_class = 1;
+    if (my_digit> dest_digit || my_digit == 0) outport_class = 0;
+
+    return outport_class;
 }
 
 int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,

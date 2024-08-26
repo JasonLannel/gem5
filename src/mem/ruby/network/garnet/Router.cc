@@ -164,6 +164,12 @@ Router::route_compute(RouteInfo route, int inport, int invc, PortDirection inpor
     return routingUnit.outportCompute(route, inport, invc, inport_dirn);
 }
 
+bool
+Router::vc_class_compute(RouteInfo route, PortDirection inport_dirn)
+{
+    return routingUnit.outVcClassCompute(route, inport_dirn);
+}
+
 void
 Router::grant_switch(int inport, flit *t_flit)
 {

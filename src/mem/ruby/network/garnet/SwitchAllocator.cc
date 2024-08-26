@@ -292,12 +292,16 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
     bool has_credit = false;
 
     auto output_unit = m_router->getOutputUnit(outport);
+    RoutingAlgorithm routing_algorithm =
+        (RoutingAlgorithm) m_router->get_net_ptr()->getRoutingAlgorithm();
+
+    auto input_unit = m_router->getInputUnit(inport);
+    int outvc_class = (routing_algorithm == DETERMINISTIC_ ? static_cast<int>(input_unit->get_outvc_class(invc)) : 2);
     if (!has_outvc) {
 
         // needs outvc
         // this is only true for HEAD and HEAD_TAIL flits.
-
-        if (output_unit->has_free_vc(vnet)) {
+        if (output_unit->has_free_vc(vnet, outvc_class)) {
 
             has_outvc = true;
 
@@ -316,7 +320,6 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
 
     // protocol ordering check
     if ((m_router->get_net_ptr())->isVNetOrdered(vnet)) {
-        auto input_unit = m_router->getInputUnit(inport);
 
         // enqueue time of this flit
         Tick t_enqueue_time = input_unit->get_enqueue_time(invc);
@@ -341,9 +344,14 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
 int
 SwitchAllocator::vc_allocate(int outport, int inport, int invc)
 {
+    RoutingAlgorithm routing_algorithm =
+        (RoutingAlgorithm) m_router->get_net_ptr()->getRoutingAlgorithm();
+
+    auto input_unit = m_router->getInputUnit(inport);
+    int outvc_class = (routing_algorithm == DETERMINISTIC_ ? static_cast<int>(input_unit->get_outvc_class(invc)) : 2);
     // Select a free VC from the output port
     int outvc =
-        m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc));
+        m_router->getOutputUnit(outport)->select_free_vc(get_vnet(invc), outvc_class);
 
     // has to get a valid VC since it checked before performing SA
     assert(outvc != -1);

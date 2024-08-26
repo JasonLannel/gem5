@@ -94,6 +94,9 @@ InputUnit::wakeup()
             set_vc_active(vc, curTick());
 
             // Route computation for this vc
+
+            RoutingAlgorithm routing_algorithm = (RoutingAlgorithm) m_router->get_net_ptr()->getRoutingAlgorithm();
+
             int outport = m_router->route_compute(t_flit->get_route(),
                 m_id, vc, m_direction);
 
@@ -102,6 +105,10 @@ InputUnit::wakeup()
             // The output port field in the flit is updated after it wins SA
             grant_outport(vc, outport);
 
+            if (routing_algorithm == DETERMINISTIC_){
+                bool outvc_class = m_router->vc_class_compute(t_flit->get_route(), m_direction);
+                grant_outvc_class(vc, outvc_class);
+            }
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);
         }
