@@ -96,12 +96,11 @@ OutputUnit::has_credit(int out_vc)
 // Check if the output port (i.e., input port at next router) has free VCs.
 // outvc_class : 0/1/2 <==> lower/upper/all
 bool
-OutputUnit::has_free_vc(int vnet, int outvc_class)
+OutputUnit::has_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
 {
     int vc_base = vnet*m_vc_per_vnet;
-    int beg = vc_base + (outvc_class == 1 ? static_cast<int>(m_vc_per_vnet / 2) : 0);
-    int end = vc_base + (outvc_class == 0 ? static_cast<int>(m_vc_per_vnet / 2) : m_vc_per_vnet);
-    for (int vc = beg; vc < end; vc++) {
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
         if (is_vc_idle(vc, curTick()))
             return true;
     }
@@ -111,19 +110,57 @@ OutputUnit::has_free_vc(int vnet, int outvc_class)
 
 // Assign a free output VC to the winner of Switch Allocation
 int
-OutputUnit::select_free_vc(int vnet, int outvc_class)
+OutputUnit::select_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
 {
     int vc_base = vnet*m_vc_per_vnet;
-    int beg = vc_base + (outvc_class == 1 ? static_cast<int>(m_vc_per_vnet / 2) : 0);
-    int end = vc_base + (outvc_class == 0 ? static_cast<int>(m_vc_per_vnet / 2) : m_vc_per_vnet);
-    for (int vc = beg; vc < end; vc++) {
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
         if (is_vc_idle(vc, curTick())) {
             outVcState[vc].setState(ACTIVE_, curTick());
+            // TODO
+            // If ra == DYNAMIC_ADAPTIVE
+            // We should deal with DR number.
             return vc;
         }
     }
 
     return -1;
+}
+
+// Get free vc count for given vc class
+int
+OutputUnit::get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra)
+{
+    assert((ra != TABLE_) && (ra != XY_) && (ra != DETERMINISTIC_));
+    int vc_base = vnet*m_vc_per_vnet;
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    int cnt = 0;
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (is_vc_idle(vc, curTick())) {
+            // TODO
+            panic("%s placeholder executed", __FUNCTION__);
+            ++cnt;
+        }
+    }
+    return cnt;
+}
+
+// Check occupied channels, find maximal dr of channels that flits can wait
+uint32_t
+OutputUnit::get_maximal_dr(int vnet, int outvc_class, RoutingAlgorithm ra)
+{
+    assert(ra == DYNAMIC_ADAPTIVE_);
+    int vc_base = vnet*m_vc_per_vnet;
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    uint32_t maximal_dr = 0;
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (!is_vc_idle(vc, curTick())) {
+            // TODO
+            panic("%s placeholder executed", __FUNCTION__);
+            maximal_dr = std::max(maximal_dr, 0u);
+        }
+    }
+    return maximal_dr;
 }
 
 /*

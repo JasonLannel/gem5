@@ -106,7 +106,7 @@ InputUnit::wakeup()
             grant_outport(vc, outport);
 
             if (routing_algorithm == DETERMINISTIC_){
-                bool outvc_class = m_router->vc_class_compute(t_flit->get_route(), m_direction);
+                int outvc_class = m_router->vc_class_compute(t_flit->get_route(), m_direction);
                 grant_outvc_class(vc, outvc_class);
             }
         } else {

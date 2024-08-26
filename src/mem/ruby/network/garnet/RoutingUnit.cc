@@ -344,31 +344,75 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                               int invc,
                                               PortDirection inport_dirn)
 {
-    panic("%s placeholder executed", __FUNCTION__);
-    auto vc_per_vnet = m_router->get_vc_per_vnet();
-    assert(vc_per_vnet >= 2);
-    int dr = route.dr;
-    int dr_lim = m_router->get_net_ptr()->getDrLim();
-    int num_ary = m_router->get_net_ptr()->getNumAry();
-    int num_dim = m_router->get_net_ptr()->getNumDim();
-    int cur_route_dim = stoi(inport_dirn.erase(0, 5));
-    if (dr < dr_lim) {
-        //...
-        if (dr < dr_lim + 1) {
-            //...
-        }
-    }
     // Deterministic
-
-    // Comes from Local => treat as in DR = 0 channel.
-    // Comes from IntLink =>
     // 0. Check class now: Deterministic (DR=lim) can only choose deter.
     // 1. Find all unoccupied adaptive channels closest to dest.
     //    If some, pick, DR++ if necessary.
     // 2. Find those adaptive channels permitted to select.
     //    If some, pick, and wait, DR++ if necessary.
     // 3. Pick Deterministic.
+    panic("%s placeholder executed", __FUNCTION__);
+    auto vc_per_vnet = m_router->get_vc_per_vnet();
+    int dr = route.dr;
+    int dr_lim = m_router->get_net_ptr()->getDrLim();
+    int num_ary = m_router->get_net_ptr()->getNumAry();
+    int num_dim = m_router->get_net_ptr()->getNumDim();
+    int cur_route_dim = stoi(inport_dirn.erase(0, 5));
+    std::vector<int> my_dim_id, dest_dim_id;
+    my_dim_id.resize(num_dim);
+    dest_dim_id.resize(num_dim);
+    for (int i = 0, my_id = m_router->get_id(), dest_id = route.dest_router; i < num_dim; ++i) {
+        my_dim_id[i] = my_id % num_ary;
+        dest_dim_id[i] = dest_id % num_ary;
+        my_id /= num_ary;
+        dest_id /= num_ary;
+    }
 
+    assert(vc_per_vnet >= 2 + dr_lim);
+    assert(m_router->get_id() != route.dest_router);
+    if (!m_router->get_net_ptr()->enableBidirectional()) {
+        if (dr < dr_lim) {
+            std::vector<int> possible_outdims;
+            for (int i = 0; i < num_dim; ++i) {
+                if (my_dim_id[i] == dest_dim_id[i]) {
+                    continue;
+                }
+                if ((i >= cur_route_dim) || (dr + 1 < dr_lim)) {
+                    possible_outdims.push_back(i);
+                }
+            }
+            if (!possible_outdims.empty()) {
+                // Pick.
+                int outdim;
+                // TODO
+                return m_outports_dirn2idx["lower"+std::to_string(outdim)];
+            }
+        }
+    } else {
+        if (dr < dr_lim) {
+            std::vector<int> possible_outdims;
+            for (int i = 0; i < num_dim; ++i) {
+                if (my_dim_id[i] == dest_dim_id[i]) {
+                    continue;
+                }
+                if ((i >= cur_route_dim) || (dr + 1 < dr_lim)) {
+                    possible_outdims.push_back(i);
+                }
+            }
+            if (!possible_outdims.empty()) {
+                // Pick.
+                int outdim;
+                return m_outports_dirn2idx["lower"+std::to_string(outdim)];
+            }
+        }
+    }
+
+    // Deterministic
+    for (int i = 0; i < num_dim; ++i) {
+        if (my_dim_id[i] != dest_dim_id[i]) {
+            return m_outports_dirn2idx["lower"+std::to_string(i)];
+        }
+    }
 }
 
 int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,

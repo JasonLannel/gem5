@@ -67,8 +67,10 @@ class OutputUnit : public Consumer
     void decrement_credit(int out_vc);
     void increment_credit(int out_vc);
     bool has_credit(int out_vc);
-    bool has_free_vc(int vnet, int outvc_class);
-    int select_free_vc(int vnet, int outvc_class);
+    bool has_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra);
+    int select_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra);
+    int get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra);
+    uint32_t get_maximal_dr(int vnet, int outvc_class, RoutingAlgorithm ra);
 
     inline PortDirection get_direction() { return m_direction; }
 

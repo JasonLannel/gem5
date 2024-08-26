@@ -164,10 +164,30 @@ Router::route_compute(RouteInfo route, int inport, int invc, PortDirection inpor
     return routingUnit.outportCompute(route, inport, invc, inport_dirn);
 }
 
-bool
+int
 Router::vc_class_compute(RouteInfo route, PortDirection inport_dirn)
 {
     return routingUnit.outVcClassCompute(route, inport_dirn);
+}
+
+std::pair<int, int>
+Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
+{
+    if ((ra == TABLE_) || (ra == XY_)) {
+        return std::make_pair(0, m_vc_per_vnet);
+    } else if (ra == DETERMINISTIC_) {
+        int beg = (vc_class == 1 ? static_cast<int>(m_vc_per_vnet / 2) : 0);
+        int end = (vc_class == 0 ? static_cast<int>(m_vc_per_vnet / 2) : m_vc_per_vnet);
+        return std::make_pair(beg, end);
+    } else if (ra == STADIC_ADAPTIVE_) {
+        // TODO
+        panic("%s placeholder executed (STADIC_ADAPTIVE)", __FUNCTION__);
+    } else if (ra == DYNAMIC_ADAPTIVE_) {
+        // TODO
+        panic("%s placeholder executed (DYNAMIC_ADAPTIVE)", __FUNCTION__);
+    } else {
+        panic("%s placeholder executed", __FUNCTION__);
+    }
 }
 
 void

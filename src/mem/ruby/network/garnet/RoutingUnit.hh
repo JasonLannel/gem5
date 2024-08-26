@@ -58,6 +58,7 @@ class RoutingUnit
 					  int invc,
                       PortDirection inport_dirn);
 
+    //Should only be triggered by DETERMINISTIC_
     int outVcClassCompute(RouteInfo route, PortDirection inport_dirn);
 
     // Topology-agnostic Routing Table based routing (default)
