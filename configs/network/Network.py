@@ -48,6 +48,18 @@ def define_options(parser):
         help="the number of rows in the mesh topology",
     )
     parser.add_argument(
+        "--num-ary",
+        type=int,
+        default=0,
+        help="the number of nodes in each dimension in k-ary n-cube topology",
+    )
+    parser.add_argument(
+        "--num-dim",
+        type=int,
+        default=0,
+        help="the number of dimension in k-ary n-cube topology",
+    )
+    parser.add_argument(
         "--network",
         default="simple",
         choices=["simple", "garnet"],
@@ -95,7 +107,9 @@ def define_options(parser):
         help="""routing algorithm in network.
             0: weight-based table
             1: XY (for Mesh. see garnet/RoutingUnit.cc)
-            2: Custom (see garnet/RoutingUnit.cc""",
+            2: Deterministic (for k-ary n-cube, also for the rest)
+            3: Static Adaptive
+            4: Dynamic Adaptive""",
     )
     parser.add_argument(
         "--network-fault-model",
@@ -103,6 +117,12 @@ def define_options(parser):
         default=False,
         help="""enable network fault model:
             see src/mem/ruby/network/fault_model/""",
+    )
+    parser.add_argument(
+        "--enable-bidirectional",
+        action="store_true",
+        default=False,
+        help="""enable bidirectional links in k-ary n-cubes""",
     )
     parser.add_argument(
         "--garnet-deadlock-threshold",

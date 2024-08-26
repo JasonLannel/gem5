@@ -65,16 +65,21 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     : Network(p)
 {
     m_num_rows = p.num_rows;
+    m_num_ary = p.num_ary;
+    m_num_dim = p.num_dim;
     m_ni_flit_size = p.ni_flit_size;
     m_max_vcs_per_vnet = 0;
     m_buffers_per_data_vc = p.buffers_per_data_vc;
     m_buffers_per_ctrl_vc = p.buffers_per_ctrl_vc;
     m_routing_algorithm = p.routing_algorithm;
+    m_dr_lim = p.dr_lim;
     m_next_packet_id = 0;
 
     m_enable_fault_model = p.enable_fault_model;
     if (m_enable_fault_model)
         fault_model = p.fault_model;
+
+    m_enable_bidirectional = p.enable_bidirectional;
 
     m_vnet_type.resize(m_virtual_networks);
 

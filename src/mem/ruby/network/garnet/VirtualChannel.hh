@@ -54,11 +54,12 @@ class VirtualChannel
 
     bool need_stage(flit_stage stage, Tick time);
     void set_idle(Tick curTime);
-    void set_active(Tick curTime);
+    void set_active(Tick curTime, uint32_t curDr = 0);
     void set_outvc(int outvc)               { m_output_vc = outvc; }
     inline int get_outvc()                  { return m_output_vc; }
     void set_outport(int outport)           { m_output_port = outport; };
     inline int get_outport()                  { return m_output_port; }
+    inline uint32_t get_dr()                     { return m_buffer_dr; }
 
     inline Tick get_enqueue_time()          { return m_enqueue_time; }
     inline void set_enqueue_time(Tick time) { m_enqueue_time = time; }
@@ -104,6 +105,7 @@ class VirtualChannel
     int m_output_port;
     Tick m_enqueue_time;
     int m_output_vc;
+    uint32_t m_buffer_dr;
 };
 
 } // namespace garnet

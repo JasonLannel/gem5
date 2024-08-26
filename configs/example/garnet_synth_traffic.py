@@ -124,6 +124,10 @@ Ruby.define_options(parser)
 
 args = parser.parse_args()
 
+if args.topology == "Torus":
+    args.num_cpus = pow(args.num_ary, args.num_dim)
+    args.num_dirs = args.num_cpus
+
 cpus = [
     GarnetSyntheticTraffic(
         num_packets_max=args.num_packets_max,

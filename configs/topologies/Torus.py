@@ -12,15 +12,12 @@ class Torus(SimpleTopology):
     def __init__(self, controllers):
         self.nodes = controllers
 
-    # Makes a generic mesh
-    # assuming an equal number of cache and directory cntrls
-
     def makeTopology(self, options, network, IntLink, ExtLink, Router):
         nodes = self.nodes
 
-        ary = options.ary
-        cubes = options.cubes
-        bidirectional = options.bidirectional
+        ary = options.num_ary
+        cubes = options.num_dim
+        bidirectional = options.enable_bidirectional
         num_routers = pow(ary, cubes)
 
         # default values for link latency and router latency.

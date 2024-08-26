@@ -41,11 +41,26 @@ class GarnetNetwork(RubyNetwork):
     cxx_class = "gem5::ruby::garnet::GarnetNetwork"
 
     num_rows = Param.Int(0, "number of rows if 2D (mesh/torus/..) topology")
+    num_ary = Param.Int(
+        0, "number of nodes in each dimension if *k*-ary n-dim topology"
+    )
+    num_dim = Param.Int(0, "number of dimension if k-ary *n*-dim topology")
+    enable_bidirectional = Param.Bool(
+        False, "use bidirectional links in k-ary n-dim topology"
+    )
     ni_flit_size = Param.UInt32(16, "network interface flit size in bytes")
     vcs_per_vnet = Param.UInt32(4, "virtual channels per virtual network")
     buffers_per_data_vc = Param.UInt32(4, "buffers per data virtual channel")
     buffers_per_ctrl_vc = Param.UInt32(1, "buffers per ctrl virtual channel")
-    routing_algorithm = Param.Int(0, "0: Weight-based Table, 1: XY, 2: Custom")
+    routing_algorithm = Param.Int(
+        0,
+        "0: Weight-based Table, 1: XY, 2: Custom, "
+        "3: deterministic, 4: static adaptive, 5: dynamic adaptive",
+    )
+    dr_lim = Param.UInt32(
+        0,
+        "maximal dimension reversal number for static adaptive routing, default 0",
+    )
     enable_fault_model = Param.Bool(False, "enable network fault model")
     fault_model = Param.FaultModel(NULL, "network fault model")
     garnet_deadlock_threshold = Param.UInt32(
