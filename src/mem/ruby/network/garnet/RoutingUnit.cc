@@ -192,9 +192,6 @@ RoutingUnit::outportCompute(RouteInfo route,
             lookupRoutingTable(route.vnet, route.net_dest); break;
         case XY_:     outport =
             outportComputeXY(route, inport, inport_dirn); break;
-        // any custom algorithm
-        case CUSTOM_: outport =
-            outportComputeCustom(route, inport, inport_dirn); break;
 		case DETERMINISTIC_:
 		    outportComputeDeterministic(route, inport, invc, inport_dirn); break;
         case STADIC_ADAPTIVE_:
@@ -267,16 +264,6 @@ RoutingUnit::outportComputeXY(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
-// Template for implementing custom routing algorithm
-// using port directions. (Example adaptive)
-int
-RoutingUnit::outportComputeCustom(RouteInfo route,
-                                 int inport,
-                                 PortDirection inport_dirn)
-{
-    panic("%s placeholder executed", __FUNCTION__);
-}
-
 int RoutingUnit::outportComputeDeterministic(RouteInfo route,
                                              int inport,
                                              int invc,
@@ -294,6 +281,19 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     panic("%s placeholder executed", __FUNCTION__);
     auto vc_per_vnet = m_router->get_vc_per_vnet();
     assert(vc_per_vnet >= 2);
+    int dr = route.dr;
+    int dr_lim = m_router->get_net_ptr()->getDrLim();
+    int num_ary = m_router->get_net_ptr()->getNumAry();
+    int num_dim = m_router->get_net_ptr()->getNumDim();
+    int cur_route_dim = stoi(inport_dirn.erase(0, 5));
+    if (dr < dr_lim) {
+        //...
+        if (dr < dr_lim + 1) {
+            //...
+        }
+    }
+    // Deterministic
+
     // Comes from Local => treat as in DR = 0 channel.
     // Comes from IntLink =>
     // 0. Check class now: Deterministic (DR=lim) can only choose deter.
