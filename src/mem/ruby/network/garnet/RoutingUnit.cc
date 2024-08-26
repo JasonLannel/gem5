@@ -264,10 +264,10 @@ RoutingUnit::outportComputeXY(RouteInfo route,
     return m_outports_dirn2idx[outport_dirn];
 }
 
-// Virtual channel class : 
+// Virtual channel class :
 // Lower channel : 0 ~ vc_per_vnet / 2 - 1
 // Upper channel : otherwise
-// Currently do not support bidirection 
+// Currently do not support bidirection
 int RoutingUnit::outportComputeDeterministic(RouteInfo route,
                                              int inport,
                                              int invc,
@@ -280,10 +280,10 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     int num_dim = m_router->get_net_ptr()->getNumDim();
 
     int my_id = m_router->get_id();
-    
+
     int dest_id = route.dest_router;
 
-    assert (my_id == dest_id);
+    assert (my_id != dest_id);
 
     if (inport_dirn == "Local") {
         int i = num_dim;
@@ -295,7 +295,7 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     // 0 for lower channel, 1 for upper channel
     int vc_class = (invc % vc_per_vnet) < static_cast<int>(vc_per_vnet / 2) ? 1 : 0;
     // Notation c_{dvx} -> n_j
-    char v[6]; 
+    char v[6];
     int d;
     assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
 
@@ -303,8 +303,8 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
     int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
 
-    if (my_digit != dest_digit) 
-        outport_dim = d; 
+    if (my_digit != dest_digit)
+        outport_dim = d;
     else {
         int i = d - 1;
         for (; (((my_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary) == ((dest_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary)); --i);
@@ -323,7 +323,7 @@ int RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
         int my_id = m_router->get_id();
         int dest_id = route.dest_router;
 
-        char v[6]; 
+        char v[6];
         int d;
         assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
 
@@ -388,6 +388,11 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
     //    If Throttling: DR >= 0/1;
     //    If some, pick, and wait, DR++ if necessary.
     // 3. Pick Deterministic.
+}
+
+int selectOutport(std::vector<int> valid_outports)
+{
+    panic("%s placeholder executed", __FUNCTION__);
 }
 
 

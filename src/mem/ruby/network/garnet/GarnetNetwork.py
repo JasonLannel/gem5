@@ -54,8 +54,13 @@ class GarnetNetwork(RubyNetwork):
     buffers_per_ctrl_vc = Param.UInt32(1, "buffers per ctrl virtual channel")
     routing_algorithm = Param.Int(
         0,
-        "0: Weight-based Table, 1: XY, 2: Custom, "
-        "3: deterministic, 4: static adaptive, 5: dynamic adaptive",
+        "0: Weight-based Table, 1: XY, 2: Deterministic, "
+        "3: Static Adaptive, 4: Dynamic Adaptive",
+    )
+    select_algorithm = Param.Int(
+        0,
+        "0: Random, 1: Minimal Congestion, "
+        "3: Maximal Flexibility, 4: Straight Lines",
     )
     dr_lim = Param.UInt32(
         0,

@@ -112,6 +112,17 @@ def define_options(parser):
             4: Dynamic Adaptive""",
     )
     parser.add_argument(
+        "--select-algorithm",
+        action="store",
+        type=int,
+        default=0,
+        help="""select algorithm in network, enabled when using adaptive routing.
+            0: Random
+            1: Minimal Congestion
+            2: Maximal Flexibility
+            3: Straight Lines""",
+    )
+    parser.add_argument(
         "--network-fault-model",
         action="store_true",
         default=False,

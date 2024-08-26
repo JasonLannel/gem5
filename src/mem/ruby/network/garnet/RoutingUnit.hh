@@ -57,7 +57,7 @@ class RoutingUnit
                       int inport,
 					  int invc,
                       PortDirection inport_dirn);
-    
+
     int outVcClassCompute(RouteInfo route, PortDirection inport_dirn);
 
     // Topology-agnostic Routing Table based routing (default)
@@ -92,6 +92,8 @@ class RoutingUnit
                                       int inport,
                                       int invc,
                                       PortDirection inport_dirn);
+
+    int selectOutport(std::vector<int> valid_outports);
 
     // Returns true if vnet is present in the vector
     // of vnets or if the vector supports all vnets.
