@@ -292,6 +292,8 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                               PortDirection inport_dirn)
 {
     panic("%s placeholder executed", __FUNCTION__);
+    auto vc_per_vnet = m_router->get_vc_per_vnet();
+    assert(vc_per_vnet >= 2);
     // Comes from Local => treat as in DR = 0 channel.
     // Comes from IntLink =>
     // 0. Check class now: Deterministic (DR=lim) can only choose deter.
