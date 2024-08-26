@@ -548,6 +548,12 @@ GarnetNetwork::regStats()
             m_ctrl_traffic_distribution[source].push_back(ctrl_packets);
         }
     }
+    m_reception_rate
+        .name(name() + ".reception_rate")
+        .unit(statistics::units::Rate<
+           statistics::units::Ratio,
+           statistics::units::Cycle>::get());    //Count/Count/Cycle
+    m_reception_rate = sum(m_packets_received) / m_num_cpus / m_sys_cycles;
 }
 
 void
@@ -580,6 +586,8 @@ GarnetNetwork::collateStats()
     for (int i = 0; i < m_routers.size(); i++) {
         m_routers[i]->collateStats();
     }
+    m_sys_cycles = divCeil(time_delta, 2);
+    m_num_cpus = getNumRouters();
 }
 
 void
