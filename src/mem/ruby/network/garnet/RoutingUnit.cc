@@ -293,7 +293,7 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     }
 
     // 0 for lower channel, 1 for upper channel
-    bool vc_class = (invc % vc_per_vnet) < static_cast<int>(vc_per_vnet / 2);
+    int vc_class = (invc % vc_per_vnet) < static_cast<int>(vc_per_vnet / 2) ? 1 : 0;
     // Notation c_{dvx} -> n_j
     char v[6]; 
     int d;
@@ -314,19 +314,25 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     return m_outports_dirn2idx["lower" + std::to_string(outport_dim)];
 }
 
-bool RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
-    int num_ary = m_router->get_net_ptr()->getNumAry();
-    
-    int my_id = m_router->get_id();
-    int dest_id = route.dest_router;
+int RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
+    RoutingAlgorithm algo =
+        (RoutingAlgorithm) m_router->get_net_ptr()->getRoutingAlgorithm();
+    if (algo == DETERMINISTIC_){
+        int num_ary = m_router->get_net_ptr()->getNumAry();
 
-    int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
-    int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+        int my_id = m_router->get_id();
+        int dest_id = route.dest_router;
 
-    bool outport_class = 1;
-    if (my_digit> dest_digit || my_digit == 0) outport_class = 0;
+        int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+        int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
 
-    return outport_class;
+        int outport_class = 1;
+        if (my_digit> dest_digit || my_digit == 0) outport_class = 0;
+
+        return outport_class;
+    } else {
+        panic("%s placeholder executed", __FUNCTION__);
+    }
 }
 
 int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,

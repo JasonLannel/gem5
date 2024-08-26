@@ -57,7 +57,7 @@ class VirtualChannel
     void set_active(Tick curTime, uint32_t curDr = 0);
     void set_outvc(int outvc)               { m_output_vc = outvc; }
     inline int get_outvc()                  { return m_output_vc; }
-    void set_outvc_class(bool outvc_class)               { m_output_vc_class = outvc_class; }
+    void set_outvc_class(int outvc_class)               { m_output_vc_class = outvc_class; }
     inline bool get_outvc_class()                  { return m_output_vc_class; }
     void set_outport(int outport)           { m_output_port = outport; };
     inline int get_outport()                  { return m_output_port; }
@@ -107,7 +107,7 @@ class VirtualChannel
     int m_output_port;
     Tick m_enqueue_time;
     int m_output_vc;
-    bool m_output_vc_class;
+    int m_output_vc_class;
     uint32_t m_buffer_dr;
 };
 

@@ -58,7 +58,7 @@ class RoutingUnit
 					  int invc,
                       PortDirection inport_dirn);
     
-    bool outVcClassCompute(RouteInfo route, PortDirection inport_dirn);
+    int outVcClassCompute(RouteInfo route, PortDirection inport_dirn);
 
     // Topology-agnostic Routing Table based routing (default)
     void addRoute(std::vector<NetDest>& routing_table_entry);
