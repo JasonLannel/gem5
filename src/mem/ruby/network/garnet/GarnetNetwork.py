@@ -66,6 +66,10 @@ class GarnetNetwork(RubyNetwork):
         0,
         "maximal dimension reversal number for static adaptive routing, default 0",
     )
+    throttling_degree = Param.UInt32(
+        0,
+        "vcs for throttling class (0) for dynamic adaptive routing, default 0",
+    )
     enable_fault_model = Param.Bool(False, "enable network fault model")
     fault_model = Param.FaultModel(NULL, "network fault model")
     garnet_deadlock_threshold = Param.UInt32(

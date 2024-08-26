@@ -74,6 +74,7 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     m_routing_algorithm = p.routing_algorithm;
     m_select_algorithm = p.select_algorithm;
     m_dr_lim = p.dr_lim;
+    m_throttling_degree = p.throttling_degree;
     m_next_packet_id = 0;
 
     m_enable_fault_model = p.enable_fault_model;

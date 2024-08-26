@@ -136,6 +136,20 @@ def define_options(parser):
         help="""enable bidirectional links in k-ary n-cubes""",
     )
     parser.add_argument(
+        "--dr-lim",
+        action="store",
+        type=int,
+        default=0,
+        help="""maximal dimension reversal number for static adaptive routing, default 0"""
+    )
+    parser.add_argument(
+        "--throttling-degree",
+        action="store",
+        type=int,
+        default=0,
+        help="""vcs for throttling class (0) for dynamic adaptive routing, default 0"""
+    )
+    parser.add_argument(
         "--garnet-deadlock-threshold",
         action="store",
         type=int,

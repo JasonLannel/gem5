@@ -87,6 +87,7 @@ class GarnetNetwork : public Network
     int getRoutingAlgorithm() const { return m_routing_algorithm; }
     int getSelectAlgorithm() const { return m_select_algorithm; }
     uint32_t getDrLim() const { return m_dr_lim; }
+    uint32_t getThrottlingDegree() const { return m_throttling_degree; }
 
     bool isFaultModelEnabled() const { return m_enable_fault_model; }
     FaultModel* fault_model;
@@ -175,6 +176,7 @@ class GarnetNetwork : public Network
     uint32_t m_buffers_per_ctrl_vc;
     uint32_t m_buffers_per_data_vc;
     uint32_t m_dr_lim;
+    uint32_t m_throttling_degree;
     int m_routing_algorithm;
     int m_select_algorithm;
     bool m_enable_fault_model;

@@ -421,8 +421,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                                                PortDirection inport_dirn)
 {
     panic("%s placeholder executed", __FUNCTION__);
-    // Comes from Local => treat as in adaptive channel.
-    // Comes from IntLink =>
+    // TODO
     // 0. Check class now: Deterministic can only choose deter.
     // 1. Find all unoccupied adaptive channels closest to dest.
     //    If Throttling: DR >= 0/1;
