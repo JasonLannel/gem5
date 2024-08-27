@@ -1,18 +1,18 @@
 #!/bin/bash
 
 function testRun {
-  for ((i = 49; i <= 50; i++)); do
+  for ((i = 70; i <= 70; i++)); do
     injection_rate="0.${i}"
     if [ $i -lt 10 ]; then
       injection_rate="0.0${i}"
     fi
     #echo "${injection_rate}"
     echo "${injection_rate}" >> "$1"
-    ../../build/NULL/gem5.opt ../example/garnet_synth_traffic.py \
-    --network=garnet --num-ary=4 --num-dim=3 \
+    ../../build/NULL/gem5.opt --debug-flags=jizhou ../example/garnet_synth_traffic.py \
+    --network=garnet --num-ary=4 --num-dim=3 --vcs-per-vnet=16 \
     --topology=Torus \
     --inj-vnet=0 --synthetic="${synthetic_choices[idx]}" \
-    --injectionrate="${injection_rate}" --sim-cycles=100000000 $2
+    --injectionrate="${injection_rate}" --sim-cycles=70000000 $2
     grep "packets_injected::total" m5out/stats.txt | sed '{s/system.ruby.network.packets_injected::total\s*//g;s/nan/-1/g;s/[^0-9.\-]*//g}' >> "$1"
     grep "packets_received::total" m5out/stats.txt | sed '{s/system.ruby.network.packets_received::total\s*//g;s/nan/-1/g;s/[^0-9.\-]*//g}' >> "$1"
     grep "average_packet_queueing_latency" m5out/stats.txt | sed '{s/system.ruby.network.average_packet_queueing_latency\s*//g;s/nan/-1/g;s/[^0-9.\-]*//g}' >> "$1"
@@ -25,7 +25,7 @@ function testRun {
 
 function testcase {
   local -a synthetic_choices
-  synthetic_choices=("uniform_random" "bit_reverse")
+  synthetic_choices=("uniform_random")
   for ((idx = 0; idx < ${#synthetic_choices[*]}; ++idx)); do
 
     # simple (0 args)

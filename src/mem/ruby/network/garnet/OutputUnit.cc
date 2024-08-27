@@ -94,7 +94,7 @@ OutputUnit::has_credit(int out_vc)
 
 
 // Check if the output port (i.e., input port at next router) has free VCs.
-// outvc_class : 0/1/2 <==> lower/upper/all
+
 bool
 OutputUnit::has_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
 {
