@@ -412,7 +412,6 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     // 2. Find those adaptive channels permitted to select.
     //    If some, pick, and wait, DR++ if necessary.
     // 3. Pick Deterministic.
-    panic("%s placeholder executed", __FUNCTION__);
     auto vc_per_vnet = m_router->get_vc_per_vnet();
     auto dr = route.dr;
     auto dr_lim = m_router->get_net_ptr()->getDrLim();
@@ -420,7 +419,8 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     int num_dim = m_router->get_net_ptr()->getNumDim();
     int cur_route_dim = -1;
     if (inport_dirn != "Local") {
-        cur_route_dim = stoi(inport_dirn.erase(0, 5));
+        char v[6];
+        assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &cur_route_dim) == 2);
     }
     std::vector<int> my_dim_id, dest_dim_id;
     my_dim_id.resize(num_dim);
@@ -496,11 +496,42 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     }
     // TODO
     // Fall back to deterministic
-    for (int i = 0; i < num_dim; ++i) {
-        if (my_dim_id[i] != dest_dim_id[i]) {
-            return m_outports_dirn2idx["lower"+std::to_string(i)];
-        }
+    int outport_dim;
+    int outport_class = 1;
+
+    if (inport_dirn == "Local") {
+        int i = 0;
+        for (; i < num_dim; ++i)
+            if (my_dim_id[i] != dest_dim_id[i])
+                break;
+        assert(i >= 0 && i < num_dim);
+        if (my_dim_id[i] > dest_dim_id[i] || my_dim_id[i] == 0) outport_class = 0;
+        m_router->getInputUnit(inport)->grant_outvc_class(invc, dr_lim + outport_class);
+
+        return m_outports_dirn2idx["lower" + std::to_string(i)];
     }
+
+    char v[6];
+    int d;
+    assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
+    assert(d >= 0 && d < num_dim);
+
+    if (my_dim_id[d] != dest_dim_id[d]) {
+        outport_dim = d;
+    }
+    else {
+        int i = d;
+        for (; i < num_dim; ++i) 
+            if (my_dim_id[i] != dest_dim_id[i])
+                break;
+        assert(i >= 0 && i < num_dim);
+        outport_dim = i; 
+    }
+    if (my_dim_id[d] > dest_dim_id[d] || my_dim_id[d] == 0) outport_class = 0;
+
+    m_router->getInputUnit(inport)->grant_outvc_class(invc, dr_lim + outport_class);
+
+    return m_outports_dirn2idx["lower" + std::to_string(outport_dim)];  
 }
 
 int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
@@ -526,7 +557,8 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
     int cur_route_dim = -1;
     int cur_vc_class = dr > 0 ? 1 : 0;
     if (inport_dirn != "Local") {
-        cur_route_dim = stoi(inport_dirn.erase(0, 5));
+        char v[6];
+        assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &cur_route_dim) == 2);
         cur_vc_class = m_router->get_vc_class(invc, DYNAMIC_ADAPTIVE_);
     }
     std::vector<int> my_dim_id, dest_dim_id;

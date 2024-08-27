@@ -32,7 +32,7 @@ function testcase {
      result_filename="simple_${synthetic_choices[idx]}.txt"
      rm "${result_filename}"
      touch "${result_filename}"
-     testRun "${result_filename}" "--routing-algorithm=2"
+     testRun "${result_filename}" "--routing-algorithm=3"
 
   done
 }
