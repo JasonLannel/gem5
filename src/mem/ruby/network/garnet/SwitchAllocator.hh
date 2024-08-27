@@ -79,6 +79,8 @@ class SwitchAllocator : public Consumer
 
     void resetStats();
 
+    bool is_dimension_reversal(int inport, int outport);
+
   private:
     int m_num_inports, m_num_outports;
     int m_num_vcs, m_vc_per_vnet;

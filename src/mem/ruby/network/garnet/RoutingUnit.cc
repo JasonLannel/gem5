@@ -479,17 +479,22 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                                    vc_classes_free,
                                                    vnet,
                                                    cur_route_dim);
+                m_router->getInputUnit(inport)
+                        ->grant_outvc_class(invc, vc_classes_free[pick_outport_idx]);
+                return outports_free[pick_outport_idx];
             } else {
-                pick_outport_idx = pickWaitOutport(dims_free,
-                                                   outports_free,
-                                                   vc_classes_free,
+                pick_outport_idx = pickWaitOutport(possible_dims,
+                                                   possible_outports,
+                                                   vc_classes,
                                                    vnet,
                                                    cur_route_dim);
+                m_router->getInputUnit(inport)
+                        ->grant_outvc_class(invc, vc_classes[pick_outport_idx]);
+                return possible_outports[pick_outport_idx];
             }
-            // TODO
         }
     }
-
+    // TODO
     // Fall back to deterministic
     for (int i = 0; i < num_dim; ++i) {
         if (my_dim_id[i] != dest_dim_id[i]) {

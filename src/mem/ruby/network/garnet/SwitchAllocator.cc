@@ -213,6 +213,11 @@ SwitchAllocator::arbitrate_outports()
                 // (This was updated in VC by vc_allocate, but not in flit)
                 t_flit->set_vc(outvc);
 
+                // Update DR Number
+                if (is_dimension_reversal(inport, outport)) {
+                    t_flit->increment_dr();
+                }
+
                 // decrement credit in outvc
                 output_unit->decrement_credit(outvc);
 
@@ -404,6 +409,20 @@ SwitchAllocator::resetStats()
 {
     m_input_arbiter_activity = 0;
     m_output_arbiter_activity = 0;
+}
+
+bool
+SwitchAllocator::is_dimension_reversal(int inport, int outport)
+{
+    if ((!m_router->get_net_ptr()->getNumAry()) || (!m_router->get_net_ptr()->getNumDim())) {
+        return false;
+    }
+    PortDirection indir = m_router->getInportDirection(inport);
+    PortDirection outdir = m_router->getOutportDirection(outport);
+    if ((indir == "Local") || (outdir == "Local")) {
+        return false;
+    }
+    return stoi(indir.erase(0, 5)) > stoi(outdir.erase(0, 5));
 }
 
 } // namespace garnet

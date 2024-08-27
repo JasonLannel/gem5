@@ -182,7 +182,9 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == STATIC_ADAPTIVE_) {
         int dr_lim = get_net_ptr()->getDrLim();
         assert(m_vc_per_vnet >= 2 * (dr_lim + 1));
-        if (vc_class < dr_lim) {
+        if (vc_class == dr_lim + 2) {
+            return std::make_pair(0, m_vc_per_vnet);
+        } else if (vc_class < dr_lim) {
             return std::make_pair(vc_class * 2, (vc_class + 1) * 2);    // 2 vcs in each class
         } else {
             int beg = 2 * dr_lim;
@@ -198,7 +200,9 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
         assert(throttling_degree < m_vc_per_vnet / 2);
-        if (vc_class == 0) {
+        if (vc_class == 4) {
+            return std::make_pair(0, m_vc_per_vnet);
+        } else if (vc_class == 0) {
             // Throttling
             assert(throttling_degree > 0);
             return std::make_pair(0, throttling_degree);

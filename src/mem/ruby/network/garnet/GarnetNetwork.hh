@@ -162,6 +162,12 @@ class GarnetNetwork : public Network
         m_total_hops += hops;
     }
 
+    void
+    increment_total_drs(uint32_t dr)
+    {
+        m_total_drs += dr;
+    }
+
     void update_traffic_distribution(RouteInfo route);
     int getNextPacketID() { return m_next_packet_id++; }
 
@@ -213,6 +219,9 @@ class GarnetNetwork : public Network
 
     statistics::Scalar  m_total_hops;
     statistics::Formula m_avg_hops;
+
+    statistics::Scalar  m_total_drs;
+    statistics::Formula m_avg_drs;
 
     statistics::Scalar m_num_cpus;
     statistics::Scalar m_sys_cycles;

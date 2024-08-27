@@ -108,6 +108,11 @@ InputUnit::wakeup()
             if (routing_algorithm == DETERMINISTIC_){
                 int outvc_class = m_router->vc_class_compute(t_flit->get_route(), m_direction);
                 grant_outvc_class(vc, outvc_class);
+            } else if (routing_algorithm == STATIC_ADAPTIVE_){
+                if (t_flit->get_route().dest_router == m_router->get_id()) {
+                    uint32_t dr_lim = m_router->get_net_ptr()->getDrLim();
+                    grant_outvc_class(vc, dr_lim + 2);
+                }
             }
         } else {
             assert(virtualChannels[vc].get_state() == ACTIVE_);

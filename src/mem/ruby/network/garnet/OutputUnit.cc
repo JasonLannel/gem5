@@ -136,10 +136,10 @@ OutputUnit::get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra)
     int cnt = 0;
     for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
         if (is_vc_idle(vc, curTick())) {
-            // TODO
-            panic("%s placeholder executed", __FUNCTION__);
             if (ra == DYNAMIC_ADAPTIVE_) {
+                // TODO
                 // NEED TO CHECK WHETHER SOMEONE IS WAITING...
+                panic("%s placeholder executed", __FUNCTION__);
             } else {
                 ++cnt;
             }
