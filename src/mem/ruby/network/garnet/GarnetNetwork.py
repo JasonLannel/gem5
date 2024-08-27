@@ -57,10 +57,9 @@ class GarnetNetwork(RubyNetwork):
         "0: Weight-based Table, 1: XY, 2: Deterministic, "
         "3: Static Adaptive, 4: Dynamic Adaptive",
     )
-    select_algorithm = Param.Int(
+    pick_algorithm = Param.Int(
         0,
-        "0: Random, 1: Minimal Congestion, "
-        "3: Maximal Flexibility, 4: Straight Lines",
+        "0: Random, 1: Minimal Congestion, 2: Straight Lines",
     )
     dr_lim = Param.UInt32(
         0,

@@ -94,7 +94,17 @@ class RoutingUnit
                                       int invc,
                                       PortDirection inport_dirn);
 
-    int selectOutport(std::vector<int> valid_outports);
+    // Pick outports with Pick Algorithm in Adaptive.
+    int pickFreeOutport(std::vector<int> valid_dims,
+                        std::vector<int> valid_outports,
+                        std::vector<int> vc_classes,
+                        int vnet,
+                        int cur_dim);
+    int pickWaitOutport(std::vector<int> valid_dims,
+                        std::vector<int> valid_outports,
+                        std::vector<int> vc_classes,
+                        int vnet,
+                        int cur_dim);
 
     // Returns true if vnet is present in the vector
     // of vnets or if the vector supports all vnets.

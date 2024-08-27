@@ -70,9 +70,9 @@ class InputUnit : public Consumer
     }
 
     inline void
-    set_vc_active(int vc, Tick curTime, uint32_t curDr = 0)
+    set_vc_active(int vc, Tick curTime)
     {
-        virtualChannels[vc].set_active(curTime, curDr);
+        virtualChannels[vc].set_active(curTime);
     }
 
     inline void

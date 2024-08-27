@@ -51,10 +51,9 @@ enum VNET_type {CTRL_VNET_, DATA_VNET_, NULL_VNET_, NUM_VNET_TYPE_};
 enum flit_stage {I_, VA_, SA_, ST_, LT_, NUM_FLIT_STAGE_};
 enum link_type { EXT_IN_, EXT_OUT_, INT_, NUM_LINK_TYPES_ };
 enum RoutingAlgorithm { TABLE_ = 0, XY_ = 1,
-						DETERMINISTIC_ = 2, STADIC_ADAPTIVE_ = 3,
+						DETERMINISTIC_ = 2, STATIC_ADAPTIVE_ = 3,
 						DYNAMIC_ADAPTIVE_ = 4, NUM_ROUTING_ALGORITHM_};
-enum SelectAlgorithm { RANDOM_ = 0, MINIMUM_CONGESTION_ = 1,
-                       MAXIMAL_FLEXIBILITY_ = 2, STRAIGHT_LINES_ = 3};
+enum PickAlgorithm { RANDOM_ = 0, MINIMUM_CONGESTION_ = 1, STRAIGHT_LINES_ = 2};
 
 struct RouteInfo
 {

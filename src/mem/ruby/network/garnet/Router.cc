@@ -179,7 +179,7 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
         int beg = (vc_class == 1 ? static_cast<int>(m_vc_per_vnet / 2) : 0);
         int end = (vc_class == 0 ? static_cast<int>(m_vc_per_vnet / 2) : m_vc_per_vnet);
         return std::make_pair(beg, end);
-    } else if (ra == STADIC_ADAPTIVE_) {
+    } else if (ra == STATIC_ADAPTIVE_) {
         int dr_lim = get_net_ptr()->getDrLim();
         assert(m_vc_per_vnet >= 2 * (dr_lim + 1));
         if (vc_class < dr_lim) {
@@ -215,6 +215,38 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
             } else {
                 panic("%s placeholder executed: invalid vc class in STADIC_ADAPTIVE", __FUNCTION__);
             }
+        }
+    } else {
+        panic("%s placeholder executed", __FUNCTION__);
+    }
+}
+
+int Router::get_vc_class(int vc, RoutingAlgorithm ra)
+{
+    vc %= m_vc_per_vnet;
+    if ((ra == TABLE_) || (ra == XY_)) {
+        return 0;
+    } else if (ra == DETERMINISTIC_) {
+        return vc >= static_cast<int>(m_vc_per_vnet / 2) ? 1 : 0;
+    } else if (ra == STATIC_ADAPTIVE_) {
+        int dr_lim = get_net_ptr()->getDrLim();
+        assert(m_vc_per_vnet >= 2 * (dr_lim + 1));
+        if (vc / 2 < dr_lim) {
+            return vc;
+        } else {
+            return vc >= m_vc_per_vnet / 2 ? dr_lim + 1 : dr_lim;
+        }
+    } else if (ra == DYNAMIC_ADAPTIVE_) {
+        int throttling_degree = get_net_ptr()->getThrottlingDegree();
+        assert(throttling_degree < m_vc_per_vnet / 2);
+        if (vc < throttling_degree) {
+            return 0;
+        } else if (vc < m_vc_per_vnet / 2) {
+            return 1;
+        } else {
+            int beg = m_vc_per_vnet / 2;
+            int end = m_vc_per_vnet;
+            return vc >= (beg + end) / 2 ? 3 : 2;
         }
     } else {
         panic("%s placeholder executed", __FUNCTION__);

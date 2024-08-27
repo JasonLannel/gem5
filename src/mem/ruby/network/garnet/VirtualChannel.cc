@@ -54,16 +54,14 @@ VirtualChannel::set_idle(Tick curTime)
     m_enqueue_time = Tick(INFINITE_);
     m_output_port = -1;
     m_output_vc = -1;
-    m_buffer_dr = 0;
 }
 
 void
-VirtualChannel::set_active(Tick curTime, uint32_t curDr)
+VirtualChannel::set_active(Tick curTime)
 {
     m_vc_state.first = ACTIVE_;
     m_vc_state.second = curTime;
     m_enqueue_time = curTime;
-    m_buffer_dr = curDr;
 }
 
 bool

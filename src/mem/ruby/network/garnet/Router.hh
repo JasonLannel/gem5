@@ -119,6 +119,7 @@ class Router : public BasicRouter, public Consumer
     int route_compute(RouteInfo route, int inport, int invc, PortDirection direction);
     int vc_class_compute(RouteInfo route, PortDirection direction);
     std::pair<int, int> get_vc_range(int vc_class, RoutingAlgorithm ra);
+    int get_vc_class(int vc, RoutingAlgorithm ra);
     void grant_switch(int inport, flit *t_flit);
     void schedule_wakeup(Cycles time);
 

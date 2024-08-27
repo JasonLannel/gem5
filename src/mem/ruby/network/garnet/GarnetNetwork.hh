@@ -85,7 +85,7 @@ class GarnetNetwork : public Network
     uint32_t getBuffersPerDataVC() { return m_buffers_per_data_vc; }
     uint32_t getBuffersPerCtrlVC() { return m_buffers_per_ctrl_vc; }
     int getRoutingAlgorithm() const { return m_routing_algorithm; }
-    int getSelectAlgorithm() const { return m_select_algorithm; }
+    int getPickAlgorithm() const { return m_pick_algorithm; }
     uint32_t getDrLim() const { return m_dr_lim; }
     uint32_t getThrottlingDegree() const { return m_throttling_degree; }
 
@@ -178,7 +178,7 @@ class GarnetNetwork : public Network
     uint32_t m_dr_lim;
     uint32_t m_throttling_degree;
     int m_routing_algorithm;
-    int m_select_algorithm;
+    int m_pick_algorithm;
     bool m_enable_fault_model;
     bool m_enable_bidirectional;
 
