@@ -181,18 +181,30 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
         return std::make_pair(beg, end);
     } else if (ra == STATIC_ADAPTIVE_) {
         int dr_lim = get_net_ptr()->getDrLim();
-        assert(m_vc_per_vnet >= 2 * (dr_lim + 1));
-        if (vc_class == dr_lim + 2) {
-            return std::make_pair(0, m_vc_per_vnet);
-        } else if (vc_class < dr_lim) {
-            return std::make_pair(vc_class * 2, (vc_class + 1) * 2);    // 2 vcs in each class
+        int vc_level = vc_class / 3;
+        const int vcs_per_level = 8;
+        if (vc_level < dr_lim) {
+            int beg = vc_level * vcs_per_level;
+            int end = (vc_level + 1) * vcs_per_level;
+            switch(vc_class % 3) {
+                case 0:
+                    return std::make_pair(beg, (beg + end) / 2);
+                case 1:
+                    return std::make_pair((beg + end) / 2, end);
+                case 2:
+                default:
+                    return std::make_pair(beg, end);
+            }
         } else {
-            int beg = 2 * dr_lim;
+            int beg = vcs_per_level * dr_lim;
             int end = m_vc_per_vnet;
-            if (vc_class == dr_lim) {
+            assert(beg + 2 <= end);
+            if (vc_class == 3 * dr_lim) {
                 return std::make_pair(beg, (beg + end) / 2);    //deterministic vc class 0
-            } else if (vc_class == dr_lim + 1) {
+            } else if (vc_class == 3 * dr_lim + 1) {
                 return std::make_pair((beg + end) / 2, end);    //deterministic vc class 1
+            } else if (vc_class == 3 * dr_lim + 2) {
+                return std::make_pair(0, m_vc_per_vnet);
             } else {
                 panic("%s placeholder executed: invalid vc class in STADIC_ADAPTIVE", __FUNCTION__);
             }
@@ -227,20 +239,7 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
 
 int Router::get_vc_class(int vc, RoutingAlgorithm ra)
 {
-    vc %= m_vc_per_vnet;
-    if ((ra == TABLE_) || (ra == XY_)) {
-        return 0;
-    } else if (ra == DETERMINISTIC_) {
-        return vc >= static_cast<int>(m_vc_per_vnet / 2) ? 1 : 0;
-    } else if (ra == STATIC_ADAPTIVE_) {
-        int dr_lim = get_net_ptr()->getDrLim();
-        assert(m_vc_per_vnet >= 2 * (dr_lim + 1));
-        if (vc / 2 < dr_lim) {
-            return vc;
-        } else {
-            return vc >= m_vc_per_vnet / 2 ? dr_lim + 1 : dr_lim;
-        }
-    } else if (ra == DYNAMIC_ADAPTIVE_) {
+    if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
         assert(throttling_degree < m_vc_per_vnet / 2);
         if (vc < throttling_degree) {

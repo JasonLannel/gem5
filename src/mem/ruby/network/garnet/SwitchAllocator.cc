@@ -422,7 +422,11 @@ SwitchAllocator::is_dimension_reversal(int inport, int outport)
     if ((indir == "Local") || (outdir == "Local")) {
         return false;
     }
-    return stoi(indir.erase(0, 5)) > stoi(outdir.erase(0, 5));
+    char v[6];
+    int indim, outdim;
+    assert(sscanf(indir.c_str(), "%5[a-zA-Z]%d", v, &indim) == 2);
+    assert(sscanf(outdir.c_str(), "%5[a-zA-Z]%d", v, &outdim) == 2);
+    return indim > outdim;
 }
 
 } // namespace garnet

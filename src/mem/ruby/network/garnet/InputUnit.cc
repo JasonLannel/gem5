@@ -111,7 +111,7 @@ InputUnit::wakeup()
             } else if (routing_algorithm == STATIC_ADAPTIVE_){
                 if (t_flit->get_route().dest_router == m_router->get_id()) {
                     uint32_t dr_lim = m_router->get_net_ptr()->getDrLim();
-                    grant_outvc_class(vc, dr_lim + 2);
+                    grant_outvc_class(vc, 3 * dr_lim + 2);
                 }
             }
         } else {

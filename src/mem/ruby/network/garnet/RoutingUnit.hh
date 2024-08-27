@@ -83,10 +83,9 @@ class RoutingUnit
 									PortDirection inport_dirn);
 
     // Static Adaptive Routing Algorithm using Port Directions & # VC
-    int outportComputeStaticAdaptive(RouteInfo route,
-                                     int inport,
-                                     int invc,
-                                     PortDirection inport_dirn);
+    void routeComputeStaticAdaptive(RouteInfo route,
+                                    int inport,
+                                    int invc);
 
     // Static Adaptive Routing Algorithm using Port Directions & # VC
     int outportComputeDynamicAdaptive(RouteInfo route,
