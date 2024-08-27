@@ -484,8 +484,7 @@ int RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                                    outports_free,
                                                    vc_classes_free,
                                                    vnet,
-                                                   cur_route_dim,
-                                                   dr);
+                                                   cur_route_dim);
             }
             // TODO
         }
