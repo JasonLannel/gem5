@@ -139,14 +139,14 @@ def define_options(parser):
         action="store",
         type=int,
         default=0,
-        help="""maximal dimension reversal number for static adaptive routing, default 0"""
+        help="""maximal dimension reversal number for static adaptive routing, default 0""",
     )
     parser.add_argument(
         "--throttling-degree",
         action="store",
         type=int,
         default=0,
-        help="""vcs for throttling class (0) for dynamic adaptive routing, default 0"""
+        help="""vcs for throttling class (0) for dynamic adaptive routing, default 0""",
     )
     parser.add_argument(
         "--garnet-deadlock-threshold",
@@ -209,9 +209,15 @@ def init_network(options, network, InterfaceClass):
 
     if options.network == "garnet":
         network.num_rows = options.mesh_rows
+        network.num_ary = options.num_ary
+        network.num_dim = options.num_dim
+        network.enable_bidirectional = options.enable_bidirectional
         network.vcs_per_vnet = options.vcs_per_vnet
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm
+        network.select_algorithm = options.select_algorithm
+        network.dr_lim = options.dr_lim
+        network.throttling_degree = options.throttling_degree
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
 
         # Create Bridges and connect them to the corresponding links

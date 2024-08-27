@@ -34,6 +34,7 @@
 #include "base/compiler.hh"
 #include "base/random.hh"
 #include "debug/RubyNetwork.hh"
+#include "debug/jizhou.hh"
 #include "mem/ruby/network/garnet/InputUnit.hh"
 #include "mem/ruby/network/garnet/OutputUnit.hh"
 #include "mem/ruby/network/garnet/Router.hh"
@@ -194,11 +195,11 @@ RoutingUnit::outportCompute(RouteInfo route,
             lookupRoutingTable(route.vnet, route.net_dest); break;
         case XY_:     outport =
             outportComputeXY(route, inport, inport_dirn); break;
-		case DETERMINISTIC_:
+		case DETERMINISTIC_: outport =
 		    outportComputeDeterministic(route, inport, invc, inport_dirn); break;
-        case STATIC_ADAPTIVE_:
+        case STATIC_ADAPTIVE_: outport =
             outportComputeStaticAdaptive(route, inport, invc, inport_dirn); break;
-        case DYNAMIC_ADAPTIVE_:
+        case DYNAMIC_ADAPTIVE_: outport =
             outportComputeDynamicAdaptive(route, inport, invc, inport_dirn); break;
         default: outport =
             lookupRoutingTable(route.vnet, route.net_dest); break;
@@ -288,28 +289,59 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     assert (my_id != dest_id);
 
     if (inport_dirn == "Local") {
-        int i = num_dim;
-        for (; (((my_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary) == ((dest_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary)); --i);
-
-        return m_outports_dirn2idx["upper" + std::to_string(i)];
+        int i = 0;
+        int my_digit = my_id % num_ary;
+        int dest_digit = dest_id % num_ary;
+        //DPRINTF(jizhou, "Local my %d dest %d\n", my_id, dest_id);
+        for (; i < num_dim; ++i) {
+            //DPRINTF(jizhou, "i %d \n", i);
+            if (my_digit != dest_digit)
+                break;
+            my_id /= num_ary;
+            dest_id /= num_ary;
+            my_digit = my_id % num_ary;
+            dest_digit = dest_id % num_ary;
+        }
+        assert(i >= 0 && i < num_dim);
+        //DPRINTF(jizhou, "Local from %d to %d diff %d \n", m_router->get_id(), route.dest_router, i);
+        return m_outports_dirn2idx["lower" + std::to_string(i)];
     }
 
+
     // 0 for lower channel, 1 for upper channel
-    int vc_class = (invc % vc_per_vnet) < static_cast<int>(vc_per_vnet / 2) ? 1 : 0;
     // Notation c_{dvx} -> n_j
     char v[6];
     int d;
     assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
-
+    assert(d >= 0 && d < num_dim);
+    //DPRINTF(jizhou, "Global my %d dest %d d %d \n", my_id, dest_id, d);
     int outport_dim;
-    int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
-    int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+    int my_digit;
+    int dest_digit;
 
-    if (my_digit != dest_digit)
+    for (int i = 1; i <= d; ++i) {
+        my_id /= num_ary;
+        dest_id /= num_ary;
+    }
+    my_digit = my_id % num_ary;
+    dest_digit = dest_id % num_ary;
+
+    if (my_digit != dest_digit) {
         outport_dim = d;
+        //DPRINTF(jizhou, "Global from %d to %d diff %d \n", m_router->get_id(), route.dest_router, d);
+    }
     else {
-        int i = d - 1;
-        for (; (((my_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary) == ((dest_id / static_cast<int>(std::pow(num_ary, i - 1))) % num_ary)); --i);
+        int i = d;
+        for (; i < num_dim; ++i) {
+            if (my_digit != dest_digit)
+                break;
+            my_id /= num_ary;
+            dest_id /= num_ary;
+            my_digit = my_id % num_ary;
+            dest_digit = dest_id % num_ary;
+        }
+        assert(i >= 0 && i < num_dim);
+        //DPRINTF(jizhou, "Global from %d to %d diff %d \n", m_router->get_id(), route.dest_router, i);
         outport_dim = i;
     }
 
@@ -321,19 +353,46 @@ int RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
         (RoutingAlgorithm) m_router->get_net_ptr()->getRoutingAlgorithm();
     if (algo == DETERMINISTIC_){
         int num_ary = m_router->get_net_ptr()->getNumAry();
+        int num_dim = m_router->get_net_ptr()->getNumDim();
 
         int my_id = m_router->get_id();
         int dest_id = route.dest_router;
 
+        int my_digit;
+        int dest_digit;
+
+        if (my_id == dest_id)
+            return 2;
+
         char v[6];
         int d;
-        assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
-
-        int my_digit = (my_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
-        int dest_digit = (dest_id / static_cast<int>(std::pow(num_ary, d - 1))) % num_ary;
+        if (inport_dirn == "Local") {
+            int i = 0;
+            my_digit = my_id % num_ary;
+            dest_digit = dest_id % num_ary;
+            for (; i < num_dim; ++i) {
+                if (my_digit != dest_digit)
+                    break;
+                my_id /= num_ary;
+                dest_id /= num_ary;
+                my_digit = my_id % num_ary;
+                dest_digit = dest_id % num_ary;
+            }
+            assert(i >= 0 && i < num_dim);
+            d = i;
+        }
+        else {
+            assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
+            for (int i = 1; i <= d; ++i) {
+                my_id /= num_ary;
+                dest_id /= num_ary;
+            }
+            my_digit = my_id % num_ary;
+            dest_digit = dest_id % num_ary;
+        }
 
         int outport_class = 1;
-        if (my_digit> dest_digit || my_digit == 0) outport_class = 0;
+        if (my_digit > dest_digit || my_digit == 0) outport_class = 0;
 
         return outport_class;
     } else {
