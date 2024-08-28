@@ -35,6 +35,7 @@
 #include "mem/ruby/network/garnet/Credit.hh"
 #include "mem/ruby/network/garnet/CreditLink.hh"
 #include "mem/ruby/network/garnet/Router.hh"
+#include "mem/ruby/network/garnet/InputUnit.hh"
 #include "mem/ruby/network/garnet/flitBuffer.hh"
 
 namespace gem5
@@ -55,6 +56,10 @@ OutputUnit::OutputUnit(int id, PortDirection direction, Router *router,
     outVcState.reserve(m_num_vcs);
     for (int i = 0; i < m_num_vcs; i++) {
         outVcState.emplace_back(i, m_router->get_net_ptr(), consumerVcs);
+    }
+    waitingQueues.reserve(m_num_vcs);
+    for (int i = 0; i < m_num_vcs; i++) {
+        waitingQueues.emplace_back();
     }
 }
 
@@ -101,7 +106,7 @@ OutputUnit::has_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
     int vc_base = vnet*m_vc_per_vnet;
     auto range = m_router->get_vc_range(outvc_class, ra);
     for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
-        if (is_vc_idle(vc, curTick()))
+        if (is_vc_idle(vc, curTick()) && waitingQueues[vc].empty())
             return true;
     }
 
@@ -115,11 +120,8 @@ OutputUnit::select_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
     int vc_base = vnet*m_vc_per_vnet;
     auto range = m_router->get_vc_range(outvc_class, ra);
     for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
-        if (is_vc_idle(vc, curTick())) {
+        if (is_vc_idle(vc, curTick()) && waitingQueues[vc].empty()) {
             outVcState[vc].setState(ACTIVE_, curTick());
-            // TODO
-            // If ra == DYNAMIC_ADAPTIVE
-            // We should deal with DR number.
             return vc;
         }
     }
@@ -128,6 +130,7 @@ OutputUnit::select_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra)
 }
 
 // Get free vc count for given vc class
+// Adaptive: We will grant free vc to those waiting, so no conflict.
 int
 OutputUnit::get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra)
 {
@@ -135,35 +138,72 @@ OutputUnit::get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra)
     auto range = m_router->get_vc_range(outvc_class, ra);
     int cnt = 0;
     for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
-        if (is_vc_idle(vc, curTick())) {
-            if (ra == DYNAMIC_ADAPTIVE_) {
-                // TODO
-                // NEED TO CHECK WHETHER SOMEONE IS WAITING...
-                panic("%s placeholder executed", __FUNCTION__);
-            } else {
-                ++cnt;
-            }
+        if (is_vc_idle(vc, curTick()) && waitingQueues[vc].empty()) {
+            ++cnt;
         }
     }
     return cnt;
 }
 
-// Check occupied channels, find maximal dr of channels that flits can wait
-uint32_t
-OutputUnit::get_maximal_dr(int vnet, int outvc_class, RoutingAlgorithm ra)
+bool
+OutputUnit::is_legal(int out_vc, uint32_t dr, RoutingAlgorithm ra) {
+    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
+    if ((ra == STATIC_ADAPTIVE_) || (waitingQueues[out_vc].empty())) {
+        return true;
+    } else if (waitingQueues[out_vc].getDr() > dr) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool
+OutputUnit::has_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
 {
-    assert(ra == DYNAMIC_ADAPTIVE_);
+    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
     int vc_base = vnet*m_vc_per_vnet;
     auto range = m_router->get_vc_range(outvc_class, ra);
-    uint32_t maximal_dr = 0;
     for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
-        if (!is_vc_idle(vc, curTick())) {
-            // TODO
-            panic("%s placeholder executed", __FUNCTION__);
-            maximal_dr = std::max(maximal_dr, 0u);
+        if (is_legal(vc, dr, ra)) {
+            return true;
         }
     }
-    return maximal_dr;
+    return false;
+}
+
+int
+OutputUnit::get_legal_vc_count(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
+{
+    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
+    int vc_base = vnet*m_vc_per_vnet;
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    int cnt = 0;
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (is_legal(vc, dr, ra)) {
+            ++cnt;
+        }
+    }
+    return cnt;
+}
+
+int
+OutputUnit::select_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
+{
+    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
+    int vc_base = vnet*m_vc_per_vnet;
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    int min_waiting_len = 0x7fffffff;
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (is_legal(vc, dr, ra)) {
+            min_waiting_len = std::min(min_waiting_len, waitingQueues[vc].size());
+        }
+    }
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (is_legal(vc, dr, ra) && min_waiting_len == waitingQueues[vc].size()) {
+            return vc;
+        }
+    }
+    return -1;
 }
 
 /*
@@ -177,18 +217,49 @@ OutputUnit::get_maximal_dr(int vnet, int outvc_class, RoutingAlgorithm ra)
 void
 OutputUnit::wakeup()
 {
+    {
+        std::string s;
+        for (int i = 0; i < waitingQueues.size(); ++i) {
+            s += std::to_string(waitingQueues[i].size()) + ' ';
+        }
+        DPRINTF(RubyNetwork, "Router %d OutputUnit %s Waiting Queues Status (BEF): %s\n", m_router->get_id(),
+            m_router->getPortDirectionName(get_direction()), s);
+    }
     if (m_credit_link->isReady(curTick())) {
         Credit *t_credit = (Credit*) m_credit_link->consumeLink();
         increment_credit(t_credit->get_vc());
 
-        if (t_credit->is_free_signal())
-            set_vc_state(IDLE_, t_credit->get_vc(), curTick());
+        if (t_credit->is_free_signal()) {
+            int vc = t_credit->get_vc();
+            set_vc_state(IDLE_, vc, curTick());
+            if (!waitingQueues[vc].empty()) {
+                waitingQueues[vc].dequeue();
+            }
+            if (waitingQueues[vc].empty()) {
+                DPRINTF(RubyNetwork, "FREE CHANNEL\n");
+            } else {
+                auto invc_info = waitingQueues[vc].peek();
+                assert(invc_info.first != -1);
+                set_vc_state(ACTIVE_, vc, curTick());
+                m_router->getInputUnit(invc_info.first)->grant_outvc(invc_info.second, vc);
+                DPRINTF(RubyNetwork, "REACTIVATE CHANNEL: %s %d (WITH LENGTH %d)\n", m_router->getInportDirection(invc_info.first), invc_info.second, waitingQueues[vc].size());
+            }
+        }
 
         delete t_credit;
 
         if (m_credit_link->isReady(curTick())) {
             scheduleEvent(Cycles(1));
         }
+    }
+
+    {
+        std::string s;
+        for (int i = 0; i < waitingQueues.size(); ++i) {
+            s += std::to_string(waitingQueues[i].size()) + ' ';
+        }
+        DPRINTF(RubyNetwork, "Router %d OutputUnit %s Waiting Queues Status (AFT): %s\n", m_router->get_id(),
+            m_router->getPortDirectionName(get_direction()), s);
     }
 }
 

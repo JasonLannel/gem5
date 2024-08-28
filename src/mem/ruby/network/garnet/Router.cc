@@ -182,7 +182,7 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == STATIC_ADAPTIVE_) {
         int dr_lim = get_net_ptr()->getDrLim();
         int vc_level = vc_class / 3;
-        const int vcs_per_level = 8;
+        const int vcs_per_level = 4;
         if (vc_level < dr_lim) {
             int beg = vc_level * vcs_per_level;
             int end = (vc_level + 1) * vcs_per_level;
@@ -212,24 +212,43 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
         assert(throttling_degree < m_vc_per_vnet / 2);
-        if (vc_class == 4) {
-            return std::make_pair(0, m_vc_per_vnet);
-        } else if (vc_class == 0) {
+        int vc_level = vc_class / 3;
+        if (vc_level == 0) {
             // Throttling
             assert(throttling_degree > 0);
-            return std::make_pair(0, throttling_degree);
-        } else if (vc_class == 1) {
+            int beg = 0, end = throttling_degree;
+            switch(vc_class % 3) {
+                case 0:
+                    return std::make_pair(beg, (beg + end) / 2);
+                case 1:
+                    return std::make_pair((beg + end) / 2, end);
+                case 2:
+                default:
+                    return std::make_pair(beg, end);
+            }
+        } else if (vc_level == 1) {
             // No Throttling
-            return std::make_pair(throttling_degree, m_vc_per_vnet / 2);
+            int beg = throttling_degree, end = m_vc_per_vnet / 2;
+            switch(vc_class % 3) {
+                case 0:
+                    return std::make_pair(beg, (beg + end) / 2);
+                case 1:
+                    return std::make_pair((beg + end) / 2, end);
+                case 2:
+                default:
+                    return std::make_pair(beg, end);
+            }
         } else {
             int beg = m_vc_per_vnet / 2;
             int end = m_vc_per_vnet;
-            if (vc_class == 2) {
+            if (vc_class == 3 * 2 + 0) {
                 return std::make_pair(beg, (beg + end) / 2);    //deterministic vc class 0
-            } else if (vc_class == 3) {
+            } else if (vc_class == 3 * 2 + 1) {
                 return std::make_pair((beg + end) / 2, end);    //deterministic vc class 1
+            } else if (vc_class == 3 * 2 + 2) {
+                return std::make_pair(0, m_vc_per_vnet);
             } else {
-                panic("%s placeholder executed: invalid vc class in STADIC_ADAPTIVE", __FUNCTION__);
+                panic("%s placeholder executed: invalid vc class in DYNAMIC_ADAPTIVE %d", __FUNCTION__);
             }
         }
     } else {
@@ -237,7 +256,7 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     }
 }
 
-int Router::get_vc_class(int vc, RoutingAlgorithm ra)
+int Router::get_vc_level(int vc, RoutingAlgorithm ra)
 {
     if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
@@ -247,9 +266,7 @@ int Router::get_vc_class(int vc, RoutingAlgorithm ra)
         } else if (vc < m_vc_per_vnet / 2) {
             return 1;
         } else {
-            int beg = m_vc_per_vnet / 2;
-            int end = m_vc_per_vnet;
-            return vc >= (beg + end) / 2 ? 3 : 2;
+            return 2;
         }
     } else {
         panic("%s placeholder executed", __FUNCTION__);

@@ -306,6 +306,21 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
 
         // needs outvc
         // this is only true for HEAD and HEAD_TAIL flits.
+        if (routing_algorithm == STATIC_ADAPTIVE_ || routing_algorithm == DYNAMIC_ADAPTIVE_) {
+            DPRINTF(RubyNetwork, "CHECKING FLIT (%s %d) -> (%s) class %d\n",
+                m_router->getInportDirection(inport),
+                invc,
+                m_router->getOutportDirection(outport), outvc_class);
+            int deter_level = 2, cur_level = outvc_class / 3;
+            if (routing_algorithm == STATIC_ADAPTIVE_) {
+                deter_level = m_router->get_net_ptr()->getDrLim();
+            }
+            if (m_router->getOutportDirection(outport) != "Local" && deter_level != cur_level) {
+                DPRINTF(RubyNetwork, "CHECKING FLIT FAILED\n");
+                return false;
+            }
+            DPRINTF(RubyNetwork, "CHECKING FLIT SUCCESS\n");
+        }
         if (output_unit->has_free_vc(vnet, outvc_class, routing_algorithm)) {
 
             has_outvc = true;
@@ -315,6 +330,11 @@ SwitchAllocator::send_allowed(int inport, int invc, int outport, int outvc)
             has_credit = true;
         }
     } else {
+        DPRINTF(RubyNetwork, "CHECKING CREDIT (%s %d) -> (%s %d)\n",
+                m_router->getInportDirection(inport),
+                invc,
+                m_router->getOutportDirection(outport),
+                outvc);
         has_credit = output_unit->has_credit(outvc);
     }
 

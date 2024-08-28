@@ -70,7 +70,10 @@ class OutputUnit : public Consumer
     bool has_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra);
     int select_free_vc(int vnet, int outvc_class, RoutingAlgorithm ra);
     int get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra);
-    uint32_t get_maximal_dr(int vnet, int outvc_class, RoutingAlgorithm ra);
+    bool is_legal(int out_vc, uint32_t dr, RoutingAlgorithm ra);
+    bool has_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
+    int get_legal_vc_count(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
+    int select_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
 
     inline PortDirection get_direction() { return m_direction; }
 
@@ -109,6 +112,50 @@ class OutputUnit : public Consumer
     bool functionalRead(Packet *pkt, WriteMask &mask);
     uint32_t functionalWrite(Packet *pkt);
 
+    class WaitingQueue {
+        public:
+          WaitingQueue() {
+            waitingQueue.clear(); channel_dr = 0;
+          }
+          inline int size() {
+              return waitingQueue.size();
+          }
+
+          inline bool empty() {
+              return waitingQueue.empty();
+          }
+
+          inline uint32_t getDr() {
+              return channel_dr;
+          }
+
+          inline void enqueue(int inport, int invc, uint32_t dr) {
+              channel_dr = dr;
+              waitingQueue.push_back(std::make_pair(inport, invc));
+          }
+
+          inline std::pair<int, int> peek() {
+              if (empty()) {
+                  return std::make_pair(-1, -1);
+              }
+              return waitingQueue.front();
+          }
+
+          inline void dequeue() {
+              if (!empty()) {
+                  waitingQueue.pop_front();
+              }
+          }
+
+        private:
+          std::deque<std::pair<int, int>> waitingQueue;
+          uint32_t channel_dr;
+    };
+
+    inline void enqueueWaitingQueue(int outvc, int inport, int invc, uint32_t dr) {
+        waitingQueues[outvc].enqueue(inport, invc, dr);
+    }
+
   private:
     Router *m_router;
     GEM5_CLASS_VAR_USED int m_id;
@@ -121,6 +168,9 @@ class OutputUnit : public Consumer
     flitBuffer outBuffer;
     // vc state of downstream router
     std::vector<OutVcState> outVcState;
+
+    // waiting queue of outvcs (used in adaptive algo)
+    std::vector<WaitingQueue> waitingQueues;
 };
 
 } // namespace garnet

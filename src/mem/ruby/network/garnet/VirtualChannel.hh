@@ -58,7 +58,7 @@ class VirtualChannel
     void set_outvc(int outvc)               { m_output_vc = outvc; }
     inline int get_outvc()                  { return m_output_vc; }
     void set_outvc_class(int outvc_class)               { m_output_vc_class = outvc_class; }
-    inline bool get_outvc_class()                  { return m_output_vc_class; }
+    inline int get_outvc_class()                  { return m_output_vc_class; }
     void set_outport(int outport)           { m_output_port = outport; };
     inline int get_outport()                  { return m_output_port; }
 
