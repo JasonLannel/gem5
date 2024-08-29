@@ -81,8 +81,6 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     if (m_enable_fault_model)
         fault_model = p.fault_model;
 
-    m_enable_bidirectional = p.enable_bidirectional;
-
     m_vnet_type.resize(m_virtual_networks);
 
     for (int i = 0 ; i < m_virtual_networks ; i++) {

@@ -459,8 +459,7 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                 int outport_i;
                 int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 if ((diff > 0) &&
-                    (diff < num_ary / 2) &&
-                    (m_router->get_net_ptr()->enableBidirectional())) {
+                    (diff < num_ary / 2)) {
                     outport_i = m_outports_dirn2idx["upper"+std::to_string(i)];
                 } else {
                     outport_i = m_outports_dirn2idx["lower"+std::to_string(i)];
@@ -544,8 +543,7 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     m_router->getInputUnit(inport)->grant_outvc_class(invc, outport_class);
     int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
     if ((diff > 0) &&
-        (diff < num_ary / 2) &&
-        (m_router->get_net_ptr()->enableBidirectional())) {
+        (diff < num_ary / 2)) {
         return m_outports_dirn2idx["upper"+std::to_string(i)];
     } else {
         return m_outports_dirn2idx["lower"+std::to_string(i)];
@@ -614,8 +612,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                 int outport_i;
                 int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 if ((diff > 0) &&
-                    (diff < num_ary / 2) &&
-                    (m_router->get_net_ptr()->enableBidirectional())) {
+                    (diff < num_ary / 2)) {
                     outport_i = m_outports_dirn2idx["upper"+std::to_string(i)];
                 } else {
                     outport_i = m_outports_dirn2idx["lower"+std::to_string(i)];
@@ -692,8 +689,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
     m_router->getInputUnit(inport)->grant_outvc_class(invc, outport_class);
     int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
     if ((diff > 0) &&
-        (diff < num_ary / 2) &&
-        (m_router->get_net_ptr()->enableBidirectional())) {
+        (diff < num_ary / 2)) {
         return m_outports_dirn2idx["upper"+std::to_string(i)];
     } else {
         return m_outports_dirn2idx["lower"+std::to_string(i)];

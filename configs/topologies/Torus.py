@@ -17,7 +17,6 @@ class Torus(SimpleTopology):
 
         ary = options.num_ary
         cubes = options.num_dim
-        bidirectional = options.enable_bidirectional
         num_routers = pow(ary, cubes)
 
         # default values for link latency and router latency.
@@ -103,19 +102,18 @@ class Torus(SimpleTopology):
                     )
                 )
                 link_count += 1
-                if bidirectional == True:
-                    int_links.append(
-                        IntLink(
-                            link_id=link_count,
-                            src_node=routers[dst_id],
-                            dst_node=routers[router_id],
-                            src_outport="upper" + str(dim),
-                            dst_inport="lower" + str(dim),
-                            latency=link_latency,
-                            weight=1,
-                        )
+                int_links.append(
+                    IntLink(
+                        link_id=link_count,
+                        src_node=routers[dst_id],
+                        dst_node=routers[router_id],
+                        src_outport="upper" + str(dim),
+                        dst_inport="lower" + str(dim),
+                        latency=link_latency,
+                        weight=1,
                     )
-                    link_count += 1
+                )
+                link_count += 1
         network.int_links = int_links
 
     # Register nodes with filesystem

@@ -129,12 +129,6 @@ def define_options(parser):
             see src/mem/ruby/network/fault_model/""",
     )
     parser.add_argument(
-        "--enable-bidirectional",
-        action="store_true",
-        default=False,
-        help="""enable bidirectional links in k-ary n-cubes""",
-    )
-    parser.add_argument(
         "--dr-lim",
         action="store",
         type=int,
@@ -211,7 +205,6 @@ def init_network(options, network, InterfaceClass):
         network.num_rows = options.mesh_rows
         network.num_ary = options.num_ary
         network.num_dim = options.num_dim
-        network.enable_bidirectional = options.enable_bidirectional
         network.vcs_per_vnet = options.vcs_per_vnet
         network.ni_flit_size = options.link_width_bits / 8
         network.routing_algorithm = options.routing_algorithm

@@ -78,7 +78,6 @@ class GarnetNetwork : public Network
     // for k-Ary n-Dim topology
     int getNumAry() const { return m_num_ary; }
     int getNumDim() const { return m_num_dim; }
-    bool enableBidirectional() const { return m_enable_bidirectional; }
 
     // for network
     uint32_t getNiFlitSize() const { return m_ni_flit_size; }

@@ -45,9 +45,6 @@ class GarnetNetwork(RubyNetwork):
         0, "number of nodes in each dimension if *k*-ary n-dim topology"
     )
     num_dim = Param.Int(0, "number of dimension if k-ary *n*-dim topology")
-    enable_bidirectional = Param.Bool(
-        False, "use bidirectional links in k-ary n-dim topology"
-    )
     ni_flit_size = Param.UInt32(16, "network interface flit size in bytes")
     vcs_per_vnet = Param.UInt32(4, "virtual channels per virtual network")
     buffers_per_data_vc = Param.UInt32(4, "buffers per data virtual channel")
