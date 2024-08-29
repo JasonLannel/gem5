@@ -270,7 +270,6 @@ RoutingUnit::outportComputeXY(RouteInfo route,
 // Virtual channel class :
 // Lower channel : 0 ~ vc_per_vnet / 2 - 1
 // Upper channel : otherwise
-// Currently do not support bidirection
 int RoutingUnit::outportComputeDeterministic(RouteInfo route,
                                              int inport,
                                              int invc,
@@ -304,6 +303,8 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
         }
         assert(i >= 0 && i < num_dim);
         //DPRINTF(jizhou, "Local from %d to %d diff %d \n", m_router->get_id(), route.dest_router, i);
+        if ((dest_digit > my_digit && dest_digit - my_digit < num_ary / 2) || (dest_digit < my_digit && num_ary - my_digit + dest_digit < num_ary / 2))
+            return m_outports_dirn2idx["upper" + std::to_string(i)];
         return m_outports_dirn2idx["lower" + std::to_string(i)];
     }
 
@@ -315,7 +316,6 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &d) == 2);
     assert(d >= 0 && d < num_dim);
     //DPRINTF(jizhou, "Global my %d dest %d d %d \n", my_id, dest_id, d);
-    int outport_dim;
     int my_digit;
     int dest_digit;
 
@@ -327,8 +327,10 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
     dest_digit = dest_id % num_ary;
 
     if (my_digit != dest_digit) {
-        outport_dim = d;
         //DPRINTF(jizhou, "Global from %d to %d diff %d \n", m_router->get_id(), route.dest_router, d);
+        if ((dest_digit > my_digit && dest_digit - my_digit < num_ary / 2) || (dest_digit < my_digit && num_ary - my_digit + dest_digit < num_ary / 2))
+            return m_outports_dirn2idx["upper" + std::to_string(d)];
+        return m_outports_dirn2idx["lower" + std::to_string(d)];
     }
     else {
         int i = d;
@@ -342,10 +344,10 @@ int RoutingUnit::outportComputeDeterministic(RouteInfo route,
         }
         assert(i >= 0 && i < num_dim);
         //DPRINTF(jizhou, "Global from %d to %d diff %d \n", m_router->get_id(), route.dest_router, i);
-        outport_dim = i;
+        if ((dest_digit > my_digit && dest_digit - my_digit < num_ary / 2) || (dest_digit < my_digit && num_ary - my_digit + dest_digit < num_ary / 2))
+            return m_outports_dirn2idx["upper" + std::to_string(i)];
+        return m_outports_dirn2idx["lower" + std::to_string(i)];
     }
-
-    return m_outports_dirn2idx["lower" + std::to_string(outport_dim)];
 }
 
 int RoutingUnit::outVcClassCompute(RouteInfo route, PortDirection inport_dirn) {
