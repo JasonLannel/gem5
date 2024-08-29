@@ -457,7 +457,7 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                     vc_class += 3 * dr;
                 }
                 int outport_i;
-                int diff = dest_dim_id[i] - my_dim_id[i];
+                int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 if ((diff > 0) &&
                     (diff < num_ary / 2) &&
                     (m_router->get_net_ptr()->enableBidirectional())) {
@@ -511,7 +511,8 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                                    outports_legal,
                                                    vc_classes_legal,
                                                    vnet,
-                                                   cur_route_dim);
+                                                   cur_route_dim,
+                                                   dr);
                 outport = outports_legal[pick_outport_idx];
                 outvc_class = vc_classes_legal[pick_outport_idx];
                 DPRINTF(RubyNetwork, "Output(WAIT): %s %d\n", m_router->getOutportDirection(outport), outvc_class);
@@ -541,8 +542,14 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
         outport_class = 3 * dr_lim + 0;
 
     m_router->getInputUnit(inport)->grant_outvc_class(invc, outport_class);
-    DPRINTF(RubyNetwork, "END ROUTING (DETERMINISTIC): STATIC ADAPTIVE\n");
-    return m_outports_dirn2idx["lower" + std::to_string(i)];
+    int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
+    if ((diff > 0) &&
+        (diff < num_ary / 2) &&
+        (m_router->get_net_ptr()->enableBidirectional())) {
+        return m_outports_dirn2idx["upper"+std::to_string(i)];
+    } else {
+        return m_outports_dirn2idx["lower"+std::to_string(i)];
+    }
 }
 
 int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
@@ -605,7 +612,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                     vc_class = 3 * cur_vc_level + 1;
                 }
                 int outport_i;
-                int diff = dest_dim_id[i] - my_dim_id[i];
+                int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 if ((diff > 0) &&
                     (diff < num_ary / 2) &&
                     (m_router->get_net_ptr()->enableBidirectional())) {
@@ -656,7 +663,8 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                                                    outports_legal,
                                                    vc_classes_legal,
                                                    vnet,
-                                                   cur_route_dim);
+                                                   cur_route_dim,
+                                                   dr);
                 outport = outports_legal[pick_outport_idx];
                 outvc_class = vc_classes_legal[pick_outport_idx];
                 outvc = m_router->getOutputUnit(outport)
@@ -682,7 +690,14 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
         outport_class = 3 * 2 + 0;
 
     m_router->getInputUnit(inport)->grant_outvc_class(invc, outport_class);
-    return m_outports_dirn2idx["lower" + std::to_string(i)];
+    int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
+    if ((diff > 0) &&
+        (diff < num_ary / 2) &&
+        (m_router->get_net_ptr()->enableBidirectional())) {
+        return m_outports_dirn2idx["upper"+std::to_string(i)];
+    } else {
+        return m_outports_dirn2idx["lower"+std::to_string(i)];
+    }
 }
 
 int RoutingUnit::pickFreeOutport(std::vector<int> dims,
@@ -739,7 +754,8 @@ int RoutingUnit::pickWaitOutport(std::vector<int> dims,
                                  std::vector<int> outports,
                                  std::vector<int> vc_classes,
                                  int vnet,
-                                 int cur_dim)
+                                 int cur_dim,
+                                 uint32_t dr)
 {
     assert(!dims.empty());
     assert(!outports.empty());
@@ -752,7 +768,23 @@ int RoutingUnit::pickWaitOutport(std::vector<int> dims,
         if (routing_algorithm != STATIC_ADAPTIVE_ && routing_algorithm != DYNAMIC_ADAPTIVE_) {
             return random_mt.random<unsigned>(0, outports.size() - 1);
         } else {
-            // TODO: Find minimal queue length, Find dir with most vcs with mini_queue_length, randomly choose one.
+            int min_waiting_len = 0;
+            for (int i = 0; i < outports.size(); ++i) {
+                min_waiting_len = std::max(
+                    min_waiting_len,
+                    m_router->getOutputUnit(outports[i])
+                            ->get_min_waiting_length(vnet, vc_classes[i], dr, routing_algorithm));
+            }
+            std::vector<int> pick_pool;
+            for (int i = 0; i < outports.size(); ++i) {
+                if (min_waiting_len ==
+                    m_router->getOutputUnit(outports[i])
+                            ->get_min_waiting_length(vnet, vc_classes[i], dr, routing_algorithm)) {
+                    pick_pool.push_back(i);
+                }
+            }
+            int lottery = random_mt.random<unsigned>(0, pick_pool.size() - 1);
+            return pick_pool[lottery];
             return random_mt.random<unsigned>(0, outports.size() - 1);
         }
     } else if (pick_algorithm == STRAIGHT_LINES_) {

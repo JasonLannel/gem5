@@ -172,21 +172,6 @@ OutputUnit::has_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorith
 }
 
 int
-OutputUnit::get_legal_vc_count(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
-{
-    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
-    int vc_base = vnet*m_vc_per_vnet;
-    auto range = m_router->get_vc_range(outvc_class, ra);
-    int cnt = 0;
-    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
-        if (is_legal(vc, dr, ra)) {
-            ++cnt;
-        }
-    }
-    return cnt;
-}
-
-int
 OutputUnit::select_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
 {
     assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
@@ -204,6 +189,21 @@ OutputUnit::select_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgor
         }
     }
     return -1;
+}
+
+int
+OutputUnit::get_min_waiting_length(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra)
+{
+    assert(ra == DYNAMIC_ADAPTIVE_ || ra == STATIC_ADAPTIVE_);
+    int vc_base = vnet*m_vc_per_vnet;
+    auto range = m_router->get_vc_range(outvc_class, ra);
+    int min_waiting_len = 0x7fffffff;
+    for (int vc = vc_base + range.first; vc < vc_base + range.second; vc++) {
+        if (is_legal(vc, dr, ra)) {
+            min_waiting_len = std::min(min_waiting_len, waitingQueues[vc].size());
+        }
+    }
+    return min_waiting_len;
 }
 
 /*
