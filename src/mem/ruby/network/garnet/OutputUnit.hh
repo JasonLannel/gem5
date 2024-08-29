@@ -72,8 +72,8 @@ class OutputUnit : public Consumer
     int get_free_vc_count(int vnet, int outvc_class, RoutingAlgorithm ra);
     bool is_legal(int out_vc, uint32_t dr, RoutingAlgorithm ra);
     bool has_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
-    int get_legal_vc_count(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
     int select_legal_vc(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
+    int get_min_waiting_length(int vnet, int outvc_class, uint32_t dr, RoutingAlgorithm ra);
 
     inline PortDirection get_direction() { return m_direction; }
 

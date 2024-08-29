@@ -104,7 +104,8 @@ class RoutingUnit
                         std::vector<int> valid_outports,
                         std::vector<int> vc_classes,
                         int vnet,
-                        int cur_dim);
+                        int cur_dim,
+                        uint32_t dr);
 
     // Returns true if vnet is present in the vector
     // of vnets or if the vector supports all vnets.
