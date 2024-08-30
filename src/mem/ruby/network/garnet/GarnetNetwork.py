@@ -62,6 +62,10 @@ class GarnetNetwork(RubyNetwork):
         0,
         "maximal dimension reversal number for static adaptive routing, default 0",
     )
+    misrouting_lim = Param.Int(
+        0,
+        "maximal misrouting number for adaptive routing, default 0",
+    )
     throttling_degree = Param.UInt32(
         0,
         "vcs for throttling class (0) for dynamic adaptive routing, default 0",

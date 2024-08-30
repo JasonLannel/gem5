@@ -178,6 +178,9 @@ NetworkInterface::incrementStats(flit *t_flit)
 
     // DRs
     m_net_ptr->increment_total_drs(t_flit->get_route().dr);
+
+    // Misrouting
+    m_net_ptr->increment_total_misrouting(t_flit->get_route().misrouting);
 }
 
 /*

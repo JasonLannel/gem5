@@ -81,6 +81,7 @@ class flit
 
     void increment_hops() { m_route.hops_traversed++; }
     void increment_dr() { m_route.dr++; }
+    void increment_misrouting() { m_route.misrouting++;}
     virtual void print(std::ostream& out) const;
 
     bool
