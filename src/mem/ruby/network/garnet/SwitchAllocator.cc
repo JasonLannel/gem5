@@ -218,6 +218,10 @@ SwitchAllocator::arbitrate_outports()
                     t_flit->increment_dr();
                 }
 
+                if (is_misrouting(inport, outport, t_flit->get_route().dest_router)) 
+                    t_flit->increment_misrouting();
+                
+                
                 // decrement credit in outvc
                 output_unit->decrement_credit(outvc);
 
@@ -447,6 +451,29 @@ SwitchAllocator::is_dimension_reversal(int inport, int outport)
     assert(sscanf(indir.c_str(), "%5[a-zA-Z]%d", v, &indim) == 2);
     assert(sscanf(outdir.c_str(), "%5[a-zA-Z]%d", v, &outdim) == 2);
     return indim > outdim;
+}
+
+bool 
+SwitchAllocator::is_misrouting(int inport, int outport, int dest_id) {
+    if ((!m_router->get_net_ptr()->getNumAry()) || (!m_router->get_net_ptr()->getNumDim()))
+        return false;
+    PortDirection indir = m_router->getInportDirection(inport);
+    PortDirection outdir = m_router->getOutportDirection(outport);
+    if ((indir == "Local") || (outdir == "Local"))
+        return false;
+    char v[6];
+    int outdim;
+    int num_ary = m_router->get_net_ptr()->getNumAry();
+    int my_digit = m_router->get_id();
+    int dest_digit = dest_id;
+    assert(sscanf(outdir.c_str(), "%5[a-zA-Z]%d", v, &outdim) == 2);
+    for (int i = 0; i < outdim; ++i) {
+        my_digit /= num_ary;
+        dest_digit /= num_ary;
+    }
+    my_digit %= num_ary;
+    dest_digit %= num_ary;
+    return my_digit == dest_digit;
 }
 
 } // namespace garnet

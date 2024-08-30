@@ -136,6 +136,13 @@ def define_options(parser):
         help="""maximal dimension reversal number for static adaptive routing, default 0""",
     )
     parser.add_argument(
+        "--misrouting-lim",
+        action="store",
+        type=int,
+        default=0,
+        help="""maximal misrouting number for adaptive routing, default 0""",
+    )
+    parser.add_argument(
         "--throttling-degree",
         action="store",
         type=int,
@@ -210,6 +217,7 @@ def init_network(options, network, InterfaceClass):
         network.routing_algorithm = options.routing_algorithm
         network.pick_algorithm = options.pick_algorithm
         network.dr_lim = options.dr_lim
+        network.misrouting_lim = options.misrouting_lim
         network.throttling_degree = options.throttling_degree
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
 

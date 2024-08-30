@@ -419,9 +419,11 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     auto vc_per_vnet = m_router->get_vc_per_vnet();
     int vnet = invc/vc_per_vnet;
     auto dr = route.dr;
+    int misrouting = route.misrouting;
     auto dr_lim = m_router->get_net_ptr()->getDrLim();
     int num_ary = m_router->get_net_ptr()->getNumAry();
     int num_dim = m_router->get_net_ptr()->getNumDim();
+    int misrouting_lim = m_router->get_net_ptr()->getMisroutingLim();
     int cur_route_dim = -1;
     if (inport_dirn != "Local") {
         char v[6];
@@ -439,13 +441,15 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
 
     assert(m_router->get_id() != route.dest_router);
     if (dr < dr_lim) {
+        // Legal ports with shortest path
+        std::vector<int> sp_dims_legal;
+        std::vector<int> sp_outports_legal;
+        std::vector<int> sp_vc_classes_legal;
+        // All legal ports
         std::vector<int> dims_legal;
         std::vector<int> outports_legal;
         std::vector<int> vc_classes_legal;
         for (int i = 0; i < num_dim; ++i) {
-            if (my_dim_id[i] == dest_dim_id[i]) {
-                continue;
-            }
             if ((cur_route_dim <= i) || (dr + 1 < dr_lim)) {
                 int vc_class = 1;
                 if (inport_dirn == "Local" || cur_route_dim > i) {
@@ -458,48 +462,78 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                 } else {
                     vc_class += 3 * dr;
                 }
-                int outport_i;
+                int outports_i[2] = {m_outports_dirn2idx["lower"+std::to_string(i)], m_outports_dirn2idx["upper"+std::to_string(i)]};
                 int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
-                if ((diff > 0) &&
-                    (diff < num_ary / 2)) {
-                    outport_i = m_outports_dirn2idx["upper"+std::to_string(i)];
-                } else {
-                    outport_i = m_outports_dirn2idx["lower"+std::to_string(i)];
-                }
-                if (m_router->getOutputUnit(outport_i)
+                int dir_i = ((diff > 0) &&
+                    (diff < num_ary / 2)) ? 1 : 0;
+                
+                if (my_dim_id[i] != dest_dim_id[i] && m_router->getOutputUnit(outports_i[dir_i])
                             ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
-                    outports_legal.push_back(outport_i);
+                    sp_outports_legal.push_back(outports_i[dir_i]);
+                    sp_dims_legal.push_back(i);
+                    sp_vc_classes_legal.push_back(vc_class);
+                    outports_legal.push_back(outports_i[dir_i]);
                     dims_legal.push_back(i);
                     vc_classes_legal.push_back(vc_class);
                 }
+                if (misrouting < misrouting_lim && cur_route_dim != i){
+                    dir_i = (dir_i + 1) % 2;
+                    if (cur_route_dim > i) {
+                        vc_class = 3 * (dr + 1) + 2;   
+                    } else {
+                        vc_class = 3 * dr + 1;
+                    }
+                    if (my_dim_id[i] != dest_dim_id[i] && m_router->getOutputUnit(outports_i[dir_i])
+                            ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
+                        outports_legal.push_back(outports_i[dir_i]);
+                        dims_legal.push_back(i);
+                        vc_classes_legal.push_back(vc_class);
+                    } 
+                    if (my_dim_id[i] == dest_dim_id[i]) {
+                        if (m_router->getOutputUnit(outports_i[0])
+                            ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
+                            outports_legal.push_back(outports_i[0]);
+                            dims_legal.push_back(i);
+                            vc_classes_legal.push_back(vc_class);
+                        }
+                        if (m_router->getOutputUnit(outports_i[1])
+                            ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
+                            outports_legal.push_back(outports_i[1]);
+                            dims_legal.push_back(i);
+                            vc_classes_legal.push_back(vc_class);
+                        }
+                    }
+                }
+                
+                
             }
         }
         DPRINTF(RubyNetwork, "FINISH LEGAL\n");
         if (!outports_legal.empty()) {
             // Pick.
-            std::vector<int> dims_free;
-            std::vector<int> outports_free;
-            std::vector<int> vc_classes_free;
+            std::vector<int> sp_dims_free;
+            std::vector<int> sp_outports_free;
+            std::vector<int> sp_vc_classes_free;
             assert(vnet < m_router->get_num_vnets());
-            for (int i = 0; i < outports_legal.size(); ++i) {
-                if (m_router->getOutputUnit(outports_legal[i])
-                            ->has_free_vc(vnet, vc_classes_legal[i], STATIC_ADAPTIVE_)) {
-                    dims_free.push_back(dims_legal[i]);
-                    outports_free.push_back(outports_legal[i]);
-                    vc_classes_free.push_back(vc_classes_legal[i]);
+            for (int i = 0; i < sp_outports_legal.size(); ++i) {
+                if (m_router->getOutputUnit(sp_outports_legal[i])
+                            ->has_free_vc(vnet, sp_vc_classes_legal[i], STATIC_ADAPTIVE_)) {
+                    sp_dims_free.push_back(sp_dims_legal[i]);
+                    sp_outports_free.push_back(sp_outports_legal[i]);
+                    sp_vc_classes_free.push_back(sp_vc_classes_legal[i]);
                 }
             }
             DPRINTF(RubyNetwork, "FINISH FREE\n");
             int pick_outport_idx;
             int outport, outvc_class, outvc;
-            if (!outports_free.empty()) {
-                pick_outport_idx = pickFreeOutport(dims_free,
-                                                   outports_free,
-                                                   vc_classes_free,
+            if (!sp_outports_free.empty()) {
+                pick_outport_idx = pickFreeOutport(sp_dims_free,
+                                                   sp_outports_free,
+                                                   sp_vc_classes_free,
                                                    vnet,
                                                    cur_route_dim);
-                outport = outports_free[pick_outport_idx];
-                outvc_class = vc_classes_free[pick_outport_idx];
+                outport = sp_outports_free[pick_outport_idx];
+                outvc_class = sp_vc_classes_free[pick_outport_idx];
                 DPRINTF(RubyNetwork, "Output(FREE): %s %d\n", m_router->getOutportDirection(outport), outvc_class);
                 outvc = m_router->getOutputUnit(outport)
                                 ->select_free_vc(vnet, outvc_class, STATIC_ADAPTIVE_);
@@ -508,20 +542,26 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                 assert(outvc != -1);
                 m_router->getInputUnit(inport)->grant_outvc(invc, outvc);
             } else {
-                pick_outport_idx = pickWaitOutport(dims_legal,
-                                                   outports_legal,
-                                                   vc_classes_legal,
-                                                   vnet,
-                                                   cur_route_dim,
-                                                   dr);
+                // Try mis routing or wait
+                
+                pick_outport_idx = pickLegalOutport(dims_legal,
+                                               outports_legal,
+                                               vc_classes_legal,
+                                               vnet,
+                                               cur_route_dim,
+                                               dr);
                 outport = outports_legal[pick_outport_idx];
                 outvc_class = vc_classes_legal[pick_outport_idx];
-                DPRINTF(RubyNetwork, "Output(WAIT): %s %d\n", m_router->getOutportDirection(outport), outvc_class);
                 outvc = m_router->getOutputUnit(outport)
+                                ->select_free_vc(vnet, outvc_class, STATIC_ADAPTIVE_);
+                if (outvc != -1) {
+                    m_router->getInputUnit(inport)->grant_outvc(invc, outvc);
+                }
+                else {
+                    outvc = m_router->getOutputUnit(outport)
                                 ->select_legal_vc(vnet, outvc_class, dr, STATIC_ADAPTIVE_);
-                DPRINTF(RubyNetwork, "Output(WAIT): %s %d %d\n", m_router->getOutportDirection(outport), outvc_class, outvc);
+                }
                 assert(outvc != -1);
-                // WAIT TILL RELEASE
             }
             m_router->getInputUnit(inport)
                     ->grant_outvc_class(invc, outvc_class);
@@ -593,9 +633,9 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
     assert(m_router->get_id() != route.dest_router);
     // vc class 2 for deterministic, no entry to adaptive levels.
     if (cur_vc_level < 2) {
-        std::vector<int> dims_legal;
-        std::vector<int> outports_legal;
-        std::vector<int> vc_classes_legal;
+        std::vector<int> sp_dims_legal;
+        std::vector<int> sp_outports_legal;
+        std::vector<int> sp_vc_classes_legal;
         for (int i = 0; i < num_dim; ++i) {
             if (my_dim_id[i] == dest_dim_id[i]) {
                 continue;
@@ -621,51 +661,51 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                 }
                 if (m_router->getOutputUnit(outport_i)
                             ->has_legal_vc(vnet, vc_class, dr, DYNAMIC_ADAPTIVE_)) {
-                    outports_legal.push_back(outport_i);
-                    dims_legal.push_back(i);
-                    vc_classes_legal.push_back(vc_class);
+                    sp_outports_legal.push_back(outport_i);
+                    sp_dims_legal.push_back(i);
+                    sp_vc_classes_legal.push_back(vc_class);
                 }
             }
         }
-        if (!outports_legal.empty()) {
+        if (!sp_outports_legal.empty()) {
             // Pick.
-            std::vector<int> dims_free;
-            std::vector<int> outports_free;
-            std::vector<int> vc_classes_free;
+            std::vector<int> sp_dims_free;
+            std::vector<int> sp_outports_free;
+            std::vector<int> sp_vc_classes_free;
             int vnet = invc/vc_per_vnet;
             assert(vnet < m_router->get_num_vnets());
-            for (int i = 0; i < outports_legal.size(); ++i) {
-                if (m_router->getOutputUnit(outports_legal[i])
-                            ->has_free_vc(vnet, vc_classes_legal[i], DYNAMIC_ADAPTIVE_)) {
-                    dims_free.push_back(dims_legal[i]);
-                    outports_free.push_back(outports_legal[i]);
-                    vc_classes_free.push_back(vc_classes_legal[i]);
+            for (int i = 0; i < sp_outports_legal.size(); ++i) {
+                if (m_router->getOutputUnit(sp_outports_legal[i])
+                            ->has_free_vc(vnet, sp_vc_classes_legal[i], DYNAMIC_ADAPTIVE_)) {
+                    sp_dims_free.push_back(sp_dims_legal[i]);
+                    sp_outports_free.push_back(sp_outports_legal[i]);
+                    sp_vc_classes_free.push_back(sp_vc_classes_legal[i]);
                 }
             }
             int pick_outport_idx;
             int outport, outvc_class, outvc;
-            if (!outports_free.empty()) {
-                pick_outport_idx = pickFreeOutport(dims_free,
-                                                   outports_free,
-                                                   vc_classes_free,
+            if (!sp_outports_free.empty()) {
+                pick_outport_idx = pickFreeOutport(sp_dims_free,
+                                                   sp_outports_free,
+                                                   sp_vc_classes_free,
                                                    vnet,
                                                    cur_route_dim);
-                outport = outports_free[pick_outport_idx];
-                outvc_class = vc_classes_free[pick_outport_idx];
+                outport = sp_outports_free[pick_outport_idx];
+                outvc_class = sp_vc_classes_free[pick_outport_idx];
                 outvc = m_router->getOutputUnit(outport)
                                 ->select_free_vc(vnet, outvc_class, DYNAMIC_ADAPTIVE_);
                 // OCCUPY IMMEDIATELY
                 assert(outvc != -1);
                 m_router->getInputUnit(inport)->grant_outvc(invc, outvc);
             } else {
-                pick_outport_idx = pickWaitOutport(dims_legal,
-                                                   outports_legal,
-                                                   vc_classes_legal,
+                pick_outport_idx = pickLegalOutport(sp_dims_legal,
+                                                   sp_outports_legal,
+                                                   sp_vc_classes_legal,
                                                    vnet,
                                                    cur_route_dim,
                                                    dr);
-                outport = outports_legal[pick_outport_idx];
-                outvc_class = vc_classes_legal[pick_outport_idx];
+                outport = sp_outports_legal[pick_outport_idx];
+                outvc_class = sp_vc_classes_legal[pick_outport_idx];
                 outvc = m_router->getOutputUnit(outport)
                                 ->select_legal_vc(vnet, outvc_class, dr, DYNAMIC_ADAPTIVE_);
                 assert(outvc != -1);
@@ -748,7 +788,7 @@ int RoutingUnit::pickFreeOutport(std::vector<int> dims,
     }
 }
 
-int RoutingUnit::pickWaitOutport(std::vector<int> dims,
+int RoutingUnit::pickLegalOutport(std::vector<int> dims,
                                  std::vector<int> outports,
                                  std::vector<int> vc_classes,
                                  int vnet,

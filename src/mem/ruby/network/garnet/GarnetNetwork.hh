@@ -86,6 +86,7 @@ class GarnetNetwork : public Network
     int getRoutingAlgorithm() const { return m_routing_algorithm; }
     int getPickAlgorithm() const { return m_pick_algorithm; }
     uint32_t getDrLim() const { return m_dr_lim; }
+    int  getMisroutingLim() const { return m_misrouting_lim; }
     uint32_t getThrottlingDegree() const { return m_throttling_degree; }
 
     bool isFaultModelEnabled() const { return m_enable_fault_model; }
@@ -166,6 +167,12 @@ class GarnetNetwork : public Network
     {
         m_total_drs += dr;
     }
+    
+    void
+    increment_total_misrouting(int misrouting)
+    {
+        m_total_misrouting += misrouting;
+    }
 
     void update_traffic_distribution(RouteInfo route);
     int getNextPacketID() { return m_next_packet_id++; }
@@ -181,6 +188,7 @@ class GarnetNetwork : public Network
     uint32_t m_buffers_per_ctrl_vc;
     uint32_t m_buffers_per_data_vc;
     uint32_t m_dr_lim;
+    int m_misrouting_lim;
     uint32_t m_throttling_degree;
     int m_routing_algorithm;
     int m_pick_algorithm;
@@ -221,6 +229,9 @@ class GarnetNetwork : public Network
 
     statistics::Scalar  m_total_drs;
     statistics::Formula m_avg_drs;
+
+    statistics::Scalar  m_total_misrouting;
+    statistics::Formula m_avg_misrouting;
 
     statistics::Scalar m_num_cpus;
     statistics::Scalar m_sys_cycles;

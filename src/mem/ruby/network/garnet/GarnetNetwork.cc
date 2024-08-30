@@ -74,6 +74,7 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     m_routing_algorithm = p.routing_algorithm;
     m_pick_algorithm = p.pick_algorithm;
     m_dr_lim = p.dr_lim;
+    m_misrouting_lim = p.misrouting_lim;
     m_throttling_degree = p.throttling_degree;
     m_next_packet_id = 0;
 
@@ -520,6 +521,10 @@ GarnetNetwork::regStats()
     // DRs
     m_avg_drs.name(name() + ".average_drs");
     m_avg_drs = m_total_drs / sum(m_flits_received);
+    
+    // Misrouting
+    m_avg_misrouting.name(name() + ".average_misrouting");
+    m_avg_misrouting = m_total_misrouting / sum(m_flits_received);
 
     // Links
     m_total_ext_in_link_utilization

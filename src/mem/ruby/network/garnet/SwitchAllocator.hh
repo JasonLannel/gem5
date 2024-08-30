@@ -80,6 +80,7 @@ class SwitchAllocator : public Consumer
     void resetStats();
 
     bool is_dimension_reversal(int inport, int outport);
+    bool is_misrouting(int inport, int outport, int dest_id);
 
   private:
     int m_num_inports, m_num_outports;
