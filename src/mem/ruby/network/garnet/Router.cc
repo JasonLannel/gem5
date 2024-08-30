@@ -182,10 +182,12 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == STATIC_ADAPTIVE_) {
         int dr_lim = get_net_ptr()->getDrLim();
         int vc_level = vc_class / 3;
-        const int vcs_per_level = 4;
+        int vcs_adaptive = get_net_ptr()->getVcsAdaptive();
+        assert(vcs_adaptive >= dr_lim * 2);
         if (vc_level < dr_lim) {
-            int beg = vc_level * vcs_per_level;
-            int end = (vc_level + 1) * vcs_per_level;
+            int beg = int(ceil(vcs_adaptive * 1.0f * vc_level / dr_lim));
+            int end = int(ceil(vcs_adaptive * 1.0f * (vc_level + 1) / dr_lim));
+            assert(beg + 2 <= end);
             switch(vc_class % 3) {
                 case 0:
                     return std::make_pair(beg, (beg + end) / 2);
@@ -196,7 +198,7 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
                     return std::make_pair(beg, end);
             }
         } else {
-            int beg = vcs_per_level * dr_lim;
+            int beg = vcs_adaptive;
             int end = m_vc_per_vnet;
             assert(beg + 2 <= end);
             if (vc_class == 3 * dr_lim) {
@@ -211,11 +213,10 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
         }
     } else if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
-        assert(throttling_degree < m_vc_per_vnet / 2);
         int vc_level = vc_class / 3;
         if (vc_level == 0) {
             // Throttling
-            assert(throttling_degree > 0);
+            assert(throttling_degree >= 2);
             int beg = 0, end = throttling_degree;
             switch(vc_class % 3) {
                 case 0:
@@ -228,7 +229,9 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
             }
         } else if (vc_level == 1) {
             // No Throttling
-            int beg = throttling_degree, end = m_vc_per_vnet / 2;
+            int beg = throttling_degree;
+            int end = get_net_ptr()->getVcsAdaptive();
+            assert(beg + 2 <= end);
             switch(vc_class % 3) {
                 case 0:
                     return std::make_pair(beg, (beg + end) / 2);
@@ -239,8 +242,9 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
                     return std::make_pair(beg, end);
             }
         } else {
-            int beg = m_vc_per_vnet / 2;
+            int beg = get_net_ptr()->getVcsAdaptive();
             int end = m_vc_per_vnet;
+            assert(beg + 2 <= end);
             if (vc_class == 3 * 2 + 0) {
                 return std::make_pair(beg, (beg + end) / 2);    //deterministic vc class 0
             } else if (vc_class == 3 * 2 + 1) {

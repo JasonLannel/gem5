@@ -75,6 +75,7 @@ GarnetNetwork::GarnetNetwork(const Params &p)
     m_pick_algorithm = p.pick_algorithm;
     m_dr_lim = p.dr_lim;
     m_throttling_degree = p.throttling_degree;
+    m_vcs_adaptive = p.vcs_adaptive;
     m_next_packet_id = 0;
 
     m_enable_fault_model = p.enable_fault_model;

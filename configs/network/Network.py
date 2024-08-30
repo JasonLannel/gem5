@@ -140,7 +140,14 @@ def define_options(parser):
         action="store",
         type=int,
         default=0,
-        help="""vcs for throttling class (0) for dynamic adaptive routing, default 0""",
+        help="""vcs for throttling class for dynamic adaptive routing, default 0""",
+    )
+    parser.add_argument(
+        "--vcs-adaptive",
+        action="store",
+        type=int,
+        default=4,
+        help="""vcs for adaptive class, default 4""",
     )
     parser.add_argument(
         "--garnet-deadlock-threshold",
@@ -211,6 +218,7 @@ def init_network(options, network, InterfaceClass):
         network.pick_algorithm = options.pick_algorithm
         network.dr_lim = options.dr_lim
         network.throttling_degree = options.throttling_degree
+        network.vcs_adaptive = options.vcs_adaptive
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
 
         # Create Bridges and connect them to the corresponding links
