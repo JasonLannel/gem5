@@ -32,9 +32,8 @@ function testRun {
 function testcase {
   local -a synthetic_choices
   synthetic_choices=("uniform_random" "bit_reverse" "bit_rotation" "bit_complement" "transpose" "tornado")
-  topo_choices=("--num-ary=8 --num-dim=2" "--num-ary=4 --num-dim=3" "--num-ary=2 --num-dim=6")
-  topo_name=("k8d2" "k4d3" "k2d6")
-  data_save_path="./data"
+  topo_choices=("--num-ary=8 --num-dim=2" "--num-ary=4 --num-dim=3")
+  topo_name=("k8d2" "k4d3")
   if [ ! -e "${data_save_path}" ]; then
     mkdir "${data_save_path}"
   fi
@@ -68,8 +67,9 @@ function testcase {
 
 run_ev="$1"
 idx="$2"
+data_save_path="./data"
 if [ ! -e "${run_ev}" ]; then
   mkdir "${run_ev}"
 fi
 testcase
-rm -rf run_ev
+rm -rf "${run_ev}"

@@ -1,82 +1,144 @@
 import matplotlib.pyplot as plt
 
+data_dir_path = "./data/"
+graph_dir_path = "./graph/"
 
-def plot_graph_from_file():
-    exp_dir_name = "./data/"
-    traffics = ["uniform_random"]
-    suffix_op = ["_deter.txt", "_sta_1.txt", "_dyn_0_1.txt"]
-    labelpost = ["Deterministic", "SA", "DA"]
-    linestyle = ["-", "--", "-."]
-    fileprefix = "k8d2_"
+
+def args_to_file_name(k, d, traffic_pattern, routing_algo, degree, picking_algo):
+    prefix = "k" + str(k) + "d" + str(d) + "_" + traffic_pattern
+    if routing_algo == 0:
+        return prefix + "_deter.txt"
+    elif routing_algo == 1:
+        return prefix + "_sta_" + str(degree) + ".txt"
+    else:
+        return prefix + "_dyn_" + str(degree) + "_" + str(picking_algo) + ".txt"
+
+
+def axis_name(op):
+    axisname = ["injrate",
+                "injpac",
+                "recpac",
+                "qlat",
+                "nlat",
+                "lat",
+                "hop",
+                "dr",
+                "misroute",
+                "recrate"]
+    return axisname[op]
+
+
+def axis_label(op):
+    axislabel = ["Injection Rate (Packets/Cycle/Node)",
+                 "Packets Injected (Packets)",
+                 "Packets Received (Packets)",
+                 "Average Queuing Latency (Cycle)",
+                 "Average Network Latency (Cycle)",
+                 "Average Latency (Cycle)",
+                 "Average Hops",
+                 "Average Dimension Reversals",
+                 "Average Misrouting Times",
+                 "Reception Rate (Packets/Cycle/Node)"]
+    return axislabel[op]
+
+
+def plot_graph_from_file(filenames, labels, linecolors, x_axis, y_axis, savename):
     # Create a plot
     plt.figure(figsize=(10, 6))
     # plt.ylim(0, 20000)
-    for traffic_name in traffics:
-        for op in range(len(suffix_op)):
-            with open(
-                exp_dir_name + fileprefix + traffic_name + suffix_op[op], "r"
-            ) as file:
-                lines = file.readlines()
-            line_no = 0
-            injection_rate = []
-            throughput = []
-            packets_inj = []
-            packets_rec = []
-            avg_queue_lat = []
-            avg_network_lat = []
-            avg_lat = []
-            avg_hop = []
-            avg_drs = []
-            avg_misrouting = []
-            reception_rate = []
-            # hyperparam = int(lines[line_no])
-            # line_no += 1
-            print(len(lines))
-            while line_no in range(len(lines)):
-                injection_rate_p = float(lines[line_no])
-                packets_inj_p = float(lines[line_no + 1])
-                packets_rec_p = float(lines[line_no + 2])
-                avg_queue_lat_p = float(lines[line_no + 3]) / 50
-                avg_network_lat_p = float(lines[line_no + 4]) / 50
-                avg_lat_p = float(lines[line_no + 5]) / 50
-                avg_hop_p = float(lines[line_no + 6])
-                avg_drs_p = float(lines[line_no + 7])
-                avg_misrouting_p = float(lines[line_no + 8])
-                reception_rate_p = float(lines[line_no + 9])
-                line_no += 10
-                injection_rate.append(injection_rate_p)
-                throughput.append(packets_rec_p / 50)
-                packets_inj.append(packets_inj_p)
-                packets_rec.append(packets_rec_p)
-                avg_queue_lat.append(avg_queue_lat_p)
-                avg_network_lat.append(avg_network_lat_p)
-                avg_lat.append(avg_lat_p)
-                avg_hop.append(avg_hop_p)
-                avg_drs.append(avg_drs_p)
-                avg_misrouting.append(avg_misrouting_p)
-                reception_rate.append(reception_rate_p)
-            if len(avg_lat) > 0:
-                plt.plot(
-                    injection_rate,
-                    avg_network_lat,
-                    linestyle=linestyle[op],
-                    label=traffic_name + "(" + labelpost[op] + ")",
-                )
-            # plt.plot(injection_rate, avg_queue_lat, marker='o', linestyle='-', color='g')
-            # plt.plot(injection_rate, avg_network_lat, marker='o', linestyle='-', color='b')
+    for op in range(len(filenames)):
+        with open(
+                data_dir_path + filenames[op], "r"
+        ) as file:
+            lines = file.readlines()
+        line_no = 0
+        x_data = []
+        y_data = []
+        # hyperparam = int(lines[line_no])
+        # line_no += 1
+        while line_no in range(len(lines)):
+            xp = float(lines[line_no + x_axis])
+            yp = float(lines[line_no + y_axis])
+            if 3 <= x_axis <= 5:
+                xp /= 50
+            if 3 <= y_axis <= 5:
+                yp /= 50
+            line_no += 10
+            x_data.append(xp)
+            y_data.append(yp)
+        if len(x_data) > 0:
+            plt.plot(
+                x_data,
+                y_data,
+                color=linecolors[op],
+                label=labels[op],
+            )
 
     # Set title and labels
     # plt.title(title)
-    plt.xlabel("Injection Rate (Packets/Node/Cycle)")
-    plt.ylabel("Throughput (Packets/Cycle)")
+    plt.xlabel(axis_label(x_axis))
+    plt.ylabel(axis_label(y_axis))
     plt.legend()
 
     # Show the plot
     plt.grid(True)
-    plt.show()
-    # plt.savefig('../../../lab3/hop.png')
+    if savename == "":
+        plt.show()
+    else:
+        plt.savefig(graph_dir_path + savename + ".png")
+
+
+def compare_algo(traffic_pattern, x_axis, y_axis, save):
+    filenames = [
+        args_to_file_name(8, 2, traffic_pattern, 0, -1, -1),
+        args_to_file_name(8, 2, traffic_pattern, 1, 1, -1),
+        args_to_file_name(8, 2, traffic_pattern, 2, 0, 1)]
+    labels = ["Deterministic", "Static Adaptive", "Dynamic Adaptive"]
+    colors = ["r", "g", "b"]
+    if save:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, traffic_pattern + "_" + axis_name(y_axis))
+    else:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, "")
+
+
+def compare_sta(traffic_pattern, x_axis, y_axis, save):
+    filenames = [
+        args_to_file_name(8, 2, traffic_pattern, 0, -1, -1),
+        args_to_file_name(8, 2, traffic_pattern, 1, 1, -1),
+        args_to_file_name(8, 2, traffic_pattern, 1, 2, -1)]
+    labels = ["Deterministic", "DR <= 1", "DR <= 2"]
+    colors = ["r", "g", "b"]
+    if save:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, traffic_pattern + "_" + axis_name(y_axis))
+    else:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, "")
+
+
+def compare_throttling(traffic_pattern, x_axis, y_axis, save):
+    filenames = [
+        args_to_file_name(8, 2, traffic_pattern, 2, 0, 1),
+        args_to_file_name(8, 2, traffic_pattern, 2, 2, 1),
+        args_to_file_name(8, 2, traffic_pattern, 2, 4, 1)]
+    labels = ["No Throttling", "2 vcs", "4 vcs"]
+    colors = ["r", "g", "b"]
+    if save:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, traffic_pattern + "_" + axis_name(y_axis))
+    else:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, "")
+
+
+def compare_pick(traffic_pattern, x_axis, y_axis, save):
+    filenames = [
+        args_to_file_name(8, 2, traffic_pattern, 2, 0, 0),
+        args_to_file_name(8, 2, traffic_pattern, 2, 0, 1),
+        args_to_file_name(8, 2, traffic_pattern, 2, 0, 2)]
+    labels = ["Random", "Minimum Congestion", "Straight Lines"]
+    colors = ["r", "g", "b"]
+    if save:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, traffic_pattern + "_" + axis_name(y_axis))
+    else:
+        plot_graph_from_file(filenames, labels, colors, x_axis, y_axis, "")
 
 
 if __name__ == "__main__":
-    # Specify the file name and title for the plot
-    plot_graph_from_file()
+    compare_algo("bit_complement", 0, 9, 0)
