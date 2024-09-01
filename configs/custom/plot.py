@@ -162,7 +162,7 @@ if __name__ == "__main__":
     )
     draw_fig(
         ["uniform_random", "bit_rotation", "transpose"],
-        [4, 5, 7, 8, 9],
+        [4, 7, 9],
         "throttling.png",
         compare_throttling,
     )
