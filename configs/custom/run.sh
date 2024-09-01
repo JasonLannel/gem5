@@ -5,7 +5,7 @@ function testRun {
     rm "$1"
   fi
   touch "$1"
-  injection_rates=("1")
+  injection_rates=("0.01" "0.1" "0.2" "0.3" "0.4" "0.5" "0.6" "0.7" "0.8" "0.9" "1")
   for ((i = 0; i < ${#injection_rates[*]}; i++)); do
     injection_rate="${injection_rates[i]}"
     cd "${run_ev}"

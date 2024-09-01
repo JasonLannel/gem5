@@ -93,10 +93,11 @@ def compare_algo(fig, traffic_pattern, x_axis, y_axis):
 def compare_throttling(fig, traffic_pattern, x_axis, y_axis):
     filenames = [
         args_to_file_name(8, 2, traffic_pattern, 2, 0, 1),
+        args_to_file_name(8, 2, traffic_pattern, 2, 2, 1),
         args_to_file_name(8, 2, traffic_pattern, 2, 4, 1),
     ]
-    labels = ["No Throttling", "4 vcs"]
-    colors = ["r", "b"]
+    labels = ["No Throttling", "2 vcs", "4 vcs"]
+    colors = ["r", "g", "b"]
     plot_graph_from_file(fig, filenames, labels, colors, x_axis, y_axis)
 
 
