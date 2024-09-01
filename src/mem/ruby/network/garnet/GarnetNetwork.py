@@ -56,7 +56,7 @@ class GarnetNetwork(RubyNetwork):
     )
     pick_algorithm = Param.Int(
         0,
-        "0: Random, 1: Minimal Congestion, 2: Straight Lines",
+        "0: Random, 1: Minimum Congestion, 2: Straight Lines",
     )
     dr_lim = Param.UInt32(
         0,
