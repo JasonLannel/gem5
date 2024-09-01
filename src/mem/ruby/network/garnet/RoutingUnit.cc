@@ -415,7 +415,6 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
     // 2. Find those adaptive channels permitted to select.
     //    If some, pick, and wait, DR++ if necessary.
     // 3. Pick Deterministic.
-    DPRINTF(RubyNetwork, "ENTERING COMPUTE: STATIC ADAPTIVE (%s)\n", inport_dirn);
     auto vc_per_vnet = m_router->get_vc_per_vnet();
     int vnet = invc/vc_per_vnet;
     auto dr = route.dr;
@@ -466,7 +465,7 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                 int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 int dir_i = ((diff > 0) &&
                     (diff < num_ary / 2)) ? 1 : 0;
-                
+
                 if (my_dim_id[i] != dest_dim_id[i] && m_router->getOutputUnit(outports_i[dir_i])
                             ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
                     sp_outports_legal.push_back(outports_i[dir_i]);
@@ -488,7 +487,7 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                         outports_legal.push_back(outports_i[dir_i]);
                         dims_legal.push_back(i);
                         vc_classes_legal.push_back(vc_class);
-                    } 
+                    }
                     if (my_dim_id[i] == dest_dim_id[i]) {
                         if (m_router->getOutputUnit(outports_i[0])
                             ->has_legal_vc(vnet, vc_class, dr, STATIC_ADAPTIVE_)) {
@@ -504,11 +503,10 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                         }
                     }
                 }
-                
-                
+
+
             }
         }
-        DPRINTF(RubyNetwork, "FINISH LEGAL\n");
         if (!outports_legal.empty()) {
             // Pick.
             std::vector<int> sp_dims_free;
@@ -523,7 +521,6 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                     sp_vc_classes_free.push_back(sp_vc_classes_legal[i]);
                 }
             }
-            DPRINTF(RubyNetwork, "FINISH FREE\n");
             int pick_outport_idx;
             int outport, outvc_class, outvc;
             if (!sp_outports_free.empty()) {
@@ -534,16 +531,14 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                                                    cur_route_dim);
                 outport = sp_outports_free[pick_outport_idx];
                 outvc_class = sp_vc_classes_free[pick_outport_idx];
-                DPRINTF(RubyNetwork, "Output(FREE): %s %d\n", m_router->getOutportDirection(outport), outvc_class);
                 outvc = m_router->getOutputUnit(outport)
                                 ->select_free_vc(vnet, outvc_class, STATIC_ADAPTIVE_);
-                DPRINTF(RubyNetwork, "Output(FREE): %s %d %d\n", m_router->getOutportDirection(outport), outvc_class, outvc);
                 // OCCUPY IMMEDIATELY
                 assert(outvc != -1);
                 m_router->getInputUnit(inport)->grant_outvc(invc, outvc);
             } else {
                 // Try mis routing or wait
-                
+
                 pick_outport_idx = pickLegalOutport(dims_legal,
                                                outports_legal,
                                                vc_classes_legal,
@@ -567,11 +562,9 @@ RoutingUnit::outportComputeStaticAdaptive(RouteInfo route,
                     ->grant_outvc_class(invc, outvc_class);
             m_router->getOutputUnit(outport)
                     ->enqueueWaitingQueue(outvc, inport, invc, dr);
-            DPRINTF(RubyNetwork, "END ROUTING: STATIC ADAPTIVE\n");
             return outport;
         }
     }
-    DPRINTF(RubyNetwork, "FALL BACK TO DETERMINISTIC\n");
     // Fall back to deterministic
     int outport_class = 3 * dr_lim + 1;
     int i = 0;
@@ -616,11 +609,14 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
     int num_dim = m_router->get_net_ptr()->getNumDim();
     int misrouting_lim = m_router->get_net_ptr()->getMisroutingLim();
     int cur_route_dim = -1;
-    int cur_vc_level = m_router->get_vc_level(0, DYNAMIC_ADAPTIVE_);    // No Throttling => No Level 0
+    int cur_vc_level = 0;
     if (inport_dirn != "Local") {
         char v[6];
         assert(sscanf(inport_dirn.c_str(), "%5[a-zA-Z]%d", v, &cur_route_dim) == 2);
         cur_vc_level = m_router->get_vc_level(invc, DYNAMIC_ADAPTIVE_);
+        if (cur_vc_level < 2) {
+            cur_vc_level = dr > 0 ? 1 : 0;
+        }
     }
     std::vector<int> my_dim_id, dest_dim_id;
     my_dim_id.resize(num_dim);
@@ -654,7 +650,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                     vc_class = 3 * cur_vc_level + 0;
                 } else {
                     vc_class = 3 * cur_vc_level + 1;
-                }                
+                }
                 int outports_i[2] = {m_outports_dirn2idx["lower"+std::to_string(i)], m_outports_dirn2idx["upper"+std::to_string(i)]};
                 int diff = (num_ary + dest_dim_id[i] - my_dim_id[i]) % num_ary;
                 int dir_i = ((diff > 0) &&
@@ -680,7 +676,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                         outports_legal.push_back(outports_i[dir_i]);
                         dims_legal.push_back(i);
                         vc_classes_legal.push_back(vc_class);
-                    } 
+                    }
                     if (my_dim_id[i] == dest_dim_id[i]) {
                         if (m_router->getOutputUnit(outports_i[0])
                             ->has_legal_vc(vnet, vc_class, dr, DYNAMIC_ADAPTIVE_)) {
@@ -736,7 +732,7 @@ int RoutingUnit::outportComputeDynamicAdaptive(RouteInfo route,
                                                vc_classes_legal,
                                                vnet,
                                                cur_route_dim,
-                                               dr);                
+                                               dr);
                 outport = outports_legal[pick_outport_idx];
                 outvc_class = vc_classes_legal[pick_outport_idx];
                 outvc = m_router->getOutputUnit(outport)

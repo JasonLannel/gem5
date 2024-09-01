@@ -214,10 +214,12 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
     } else if (ra == DYNAMIC_ADAPTIVE_) {
         int throttling_degree = get_net_ptr()->getThrottlingDegree();
         int vc_level = vc_class / 3;
-        if (vc_level == 0) {
+        if (vc_level == 0 && throttling_degree > 0) {
             // Throttling
             assert(throttling_degree >= 2);
-            int beg = 0, end = throttling_degree;
+            int beg = get_net_ptr()->getVcsAdaptive() / 2 - throttling_degree / 2;
+            int end = beg + throttling_degree;
+            assert(beg >= 0);
             switch(vc_class % 3) {
                 case 0:
                     return std::make_pair(beg, (beg + end) / 2);
@@ -227,9 +229,9 @@ Router::get_vc_range(int vc_class, RoutingAlgorithm ra)
                 default:
                     return std::make_pair(beg, end);
             }
-        } else if (vc_level == 1) {
+        } else if (vc_level < 2) {
             // No Throttling
-            int beg = throttling_degree;
+            int beg = 0;
             int end = get_net_ptr()->getVcsAdaptive();
             assert(beg + 2 <= end);
             switch(vc_class % 3) {

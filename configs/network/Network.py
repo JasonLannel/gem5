@@ -116,9 +116,9 @@ def define_options(parser):
         action="store",
         type=int,
         default=0,
-        help="""select algorithm in network, enabled when using adaptive routing.
+        help="""pick algorithm in adaptive routing.
             0: Random
-            1: Minimal Congestion
+            1: Minimum Congestion
             2: Straight Lines""",
     )
     parser.add_argument(
